@@ -1,0 +1,125 @@
+<!-- /index.html — Landing page only -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Joey Haley — Archive</title>
+  <meta name="description" content="A curated archive for Canadian artist Joey Haley. Minimalist portfolio with selected paintings and comics." />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    :root{
+      --bg:#0b0b0b; --fg:#f3f3f3; --muted:#a0a0a0; --edge:#1e1e1e; --hit:#fafafa;
+      --grid: clamp(16px, 2.2vw, 28px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; background:var(--bg); color:var(--fg); font:16px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial}
+    a{color:inherit; text-decoration:none}
+    a:focus-visible{outline:2px solid var(--fg); outline-offset:4px}
+
+    .wrap{max-width:1200px; margin:0 auto; padding:calc(var(--grid)*1.25) var(--grid)}
+
+    /* Header / Nav */
+    header{display:flex; align-items:center; justify-content:space-between; gap:var(--grid); border-bottom:1px solid var(--edge); padding-bottom:var(--grid)}
+    .brand{font-weight:700; letter-spacing:.06em; text-transform:uppercase}
+    nav ul{display:flex; gap:calc(var(--grid)*.75); list-style:none; padding:0; margin:0}
+    nav a{opacity:.85; padding:10px 12px; border-radius:10px; border:1px solid transparent}
+    nav a[aria-current="page"]{opacity:1; border-color:var(--edge); background:#101010}
+    nav a:hover{opacity:1}
+
+    /* Hero grid */
+    .hero{display:grid; gap:var(--grid); margin-top:calc(var(--grid)*1.25)}
+    @media (min-width:900px){ .hero{grid-template-columns: repeat(3, 1fr)} }
+    .tile{position:relative; border:1px solid var(--edge); border-radius:18px; overflow:hidden; background:#0f0f0f}
+    .tile figure{margin:0; aspect-ratio: 5/6; display:grid; place-items:center; background:#111}
+    .tile img{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(0.96)}
+    .tile .cap{position:absolute; left:10px; bottom:10px; background:rgba(0,0,0,.45); backdrop-filter: blur(3px); color:var(--hit); padding:8px 10px; border-radius:10px; font-size:.9rem; border:1px solid rgba(255,255,255,.08)}
+
+    /* Intro / Bio */
+    .intro{display:grid; grid-template-columns:1fr; gap:var(--grid); margin:calc(var(--grid)*1.5) 0}
+    .intro h1{margin:0; font-size: clamp(28px, 4.6vw, 52px); line-height:1.08}
+    .intro p{color:var(--muted); max-width:68ch; margin:0}
+
+    .row{display:flex; gap:12px; flex-wrap:wrap}
+    .cta{border:1px solid var(--edge); padding:12px 16px; border-radius:999px}
+    .cta:hover{border-color:#2a2a2a}
+
+    footer{border-top:1px solid var(--edge); margin-top:calc(var(--grid)*2); padding-top:calc(var(--grid)*1)}
+    footer .sitemap{display:flex; gap:16px; flex-wrap:wrap}
+    footer .sitemap a{color:var(--muted)}
+    footer .sitemap a:hover{color:var(--fg)}
+
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">Joey Haley</div>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="/" aria-current="page">Home</a></li>
+          <li><a href="/gallery/">Gallery</a></li>
+          <li><a href="/bio/">Bio</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <section class="intro" aria-labelledby="intro-title">
+      <h1 id="intro-title">A curated archive</h1>
+      <p>A minimalist, permanent home for the work of Canadian artist Joey Haley (paintings and comics). Selected pieces appear below; explore the full gallery for the complete catalog.</p>
+      <div class="row">
+        <a class="cta" href="#preview">Preview</a>
+        <a class="cta" href="/gallery/">View full gallery</a>
+      </div>
+    </section>
+
+    <section id="preview" class="hero" aria-labelledby="featured-title">
+      <h2 id="featured-title" class="sr-only">Featured works</h2>
+      <!-- Tiles are populated by inline data or an API call -->
+      <a class="tile" href="#" data-href="/gallery/untitled-vermilion-field/">
+        <figure>
+          <img src="https://cdn.example.r2/images/paintings/untitled-vermilion-field_1600.jpg" alt="Abstract red field with sharp black geometry" loading="eager" decoding="async">
+        </figure>
+        <div class="cap">Untitled (Vermilion Field) · 2016</div>
+      </a>
+      <a class="tile" href="#" data-href="/gallery/window-four-panels/">
+        <figure>
+          <img src="https://cdn.example.r2/images/comics/window-four-panels_1600.jpg" alt="Four-panel comic with stark lines and negative space" loading="lazy" decoding="async">
+        </figure>
+        <div class="cap">Window, Four Panels · 2014</div>
+      </a>
+      <a class="tile" href="#" data-href="/gallery/northern-light-3/">
+        <figure>
+          <img src="https://cdn.example.r2/images/paintings/northern-light-3_1600.jpg" alt="Cool gradients with a hard-edged diagonal" loading="lazy" decoding="async">
+        </figure>
+        <div class="cap">Northern Light #3 · 2013</div>
+      </a>
+    </section>
+
+    <footer>
+      <nav class="sitemap" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/gallery/">Gallery</a>
+        <a href="/bio/">Bio</a>
+        <a href="/contact/">Contact</a>
+      </nav>
+      <p style="color:var(--muted); margin-top:12px">© <span id="year"></span> Joey Haley Estate. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Optional: if you wire up an API later, swap the sources by ID without changing markup
+    // Example: fetch('/api/featured').then(r=>r.json()).then(items=>{ /* update tiles */ })
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Make entire tiles clickable even if image fails
+    document.querySelectorAll('.tile').forEach(t => {
+      const href = t.getAttribute('data-href');
+      if(href) t.setAttribute('href', href);
+    });
+  </script>
+</body>
+</html>

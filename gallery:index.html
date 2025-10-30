@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Gallery — Joey Haley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand"><a href="/">Joey Haley</a></div>
+      <nav><a href="/" >Home</a> <a href="/gallery/" aria-current="page">Gallery</a></nav>
+    </header>
+
+    <section class="hero" id="gallery"></section>
+
+    <footer><p>© <span id="year"></span> Joey Haley Estate.</p></footer>
+  </div>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    fetch('/api/gallery')
+      .then(r => r.json())
+      .then(data => {
+        const grid = document.getElementById('gallery');
+        grid.innerHTML = '';
+        data.all.forEach(item => {
+          const a = document.createElement('a');
+          a.className = 'tile';
+          a.href = item.url;
+          a.innerHTML = `
+            <figure><img src="${item.url}" loading="lazy"></figure>
+            <div class="cap">${item.key.replace(/[_-]/g,' ').replace(/\..+$/,'')}</div>`;
+          grid.append(a);
+        });
+      });
+  </script>
+</body>
+</html>
