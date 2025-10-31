@@ -4,36 +4,180 @@
   <meta charset="utf-8">
   <title>Gallery — Joey Haley</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Complete gallery of Joey Haley's paintings and comics. Browse the full collection of minimalist artwork.">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <div class="wrap">
     <header>
       <div class="brand"><a href="/">Joey Haley</a></div>
-      <nav><a href="/" >Home</a> <a href="/gallery/" aria-current="page">Gallery</a></nav>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/gallery/" aria-current="page">Gallery</a></li>
+          <li><a href="/bio/">Bio</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
     </header>
 
-    <section class="hero" id="gallery"></section>
+    <section class="intro">
+      <h1>Complete Gallery</h1>
+      <p>Browse the full collection of paintings and comics by Joey Haley. Click any image to view larger.</p>
+    </section>
 
-    <footer><p>© <span id="year"></span> Joey Haley Estate.</p></footer>
+    <section class="hero" id="gallery" aria-label="Gallery Grid">
+      <div class="loading" style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: calc(var(--grid) * 2);">
+        Loading gallery...
+      </div>
+    </section>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+      <button class="modal-close" id="modalClose" aria-label="Close modal">&times;</button>
+      <button class="modal-nav modal-prev" id="modalPrev" aria-label="Previous image">&#8249;</button>
+      <button class="modal-nav modal-next" id="modalNext" aria-label="Next image">&#8250;</button>
+      <div class="modal-content">
+        <img class="modal-image" id="modalImage" alt="" />
+      </div>
+      <div class="modal-info">
+        <span class="modal-title" id="modalTitle"></span>
+        <a class="modal-fullres" id="modalFullRes" target="_blank" rel="noopener">View full resolution</a>
+      </div>
+    </div>
+
+    <footer>
+      <nav class="sitemap" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/gallery/">Gallery</a>
+        <a href="/bio/">Bio</a>
+        <a href="/contact/">Contact</a>
+      </nav>
+      <p style="color:var(--muted); margin-top:12px">© <span id="year"></span> Joey Haley. All rights reserved.</p>
+    </footer>
   </div>
 
   <script>
+    let galleryImages = [];
+    let currentImageIndex = 0;
+
+    // Set current year
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Modal elements
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalFullRes = document.getElementById('modalFullRes');
+    const modalClose = document.getElementById('modalClose');
+    const modalPrev = document.getElementById('modalPrev');
+    const modalNext = document.getElementById('modalNext');
+
+    // Format image title from filename
+    function formatTitle(key) {
+      return key.replace(/[_-]/g, ' ')
+                .replace(/\..+$/, '')
+                .replace(/\b\w/g, l => l.toUpperCase());
+    }
+
+    // Get full resolution URL
+    function getFullResUrl(key) {
+      return `https://cdn.joeyhaleyart.com/${key}`;
+    }
+
+    // Open modal with image
+    function openModal(imageIndex) {
+      currentImageIndex = imageIndex;
+      const image = galleryImages[currentImageIndex];
+      
+      modalImage.src = image.url;
+      modalImage.alt = formatTitle(image.key);
+      modalTitle.textContent = formatTitle(image.key);
+      modalFullRes.href = getFullResUrl(image.key);
+      
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      
+      // Focus management
+      modalClose.focus();
+    }
+
+    // Close modal
+    function closeModal() {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    // Navigate to previous image
+    function prevImage() {
+      currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+      openModal(currentImageIndex);
+    }
+
+    // Navigate to next image
+    function nextImage() {
+      currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+      openModal(currentImageIndex);
+    }
+
+    // Event listeners
+    modalClose.addEventListener('click', closeModal);
+    modalPrev.addEventListener('click', prevImage);
+    modalNext.addEventListener('click', nextImage);
+
+    // Close modal on background click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (!modal.classList.contains('active')) return;
+      
+      switch(e.key) {
+        case 'Escape':
+          closeModal();
+          break;
+        case 'ArrowLeft':
+          prevImage();
+          break;
+        case 'ArrowRight':
+          nextImage();
+          break;
+      }
+    });
+
+    // Load gallery
     fetch('/api/gallery')
       .then(r => r.json())
       .then(data => {
+        galleryImages = data.all;
         const grid = document.getElementById('gallery');
         grid.innerHTML = '';
-        data.all.forEach(item => {
-          const a = document.createElement('a');
-          a.className = 'tile';
-          a.href = item.url;
-          a.innerHTML = `
-            <figure><img src="${item.url}" loading="lazy"></figure>
-            <div class="cap">${item.key.replace(/[_-]/g,' ').replace(/\..+$/,'')}</div>`;
-          grid.append(a);
+        
+        galleryImages.forEach((item, index) => {
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+          tile.innerHTML = `
+            <figure>
+              <img src="${item.url}" alt="${formatTitle(item.key)}" loading="lazy" decoding="async">
+            </figure>
+            <div class="cap">${formatTitle(item.key)}</div>
+          `;
+          
+          // Add click handler for modal
+          tile.addEventListener('click', () => openModal(index));
+          tile.style.cursor = 'pointer';
+          
+          grid.appendChild(tile);
         });
+      })
+      .catch(error => {
+        console.error('Failed to load gallery:', error);
+        const grid = document.getElementById('gallery');
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: calc(var(--grid) * 2);">Failed to load gallery. Please try again later.</div>';
       });
   </script>
 </body>
