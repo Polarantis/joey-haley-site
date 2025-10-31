@@ -7,11 +7,24 @@ export async function onRequestGet(context) {
     .map(o => ({
       key: o.key,
       url: `https://${env.R2_PUBLIC_DOMAIN}/${o.key}`,
-      hero: /hero/i.test(o.key)
+      heroOrder: getHeroOrder(o.key)
     }));
 
+  // Get hero images in order (hero1, hero2, hero3)
+  const heroImages = images
+    .filter(i => i.heroOrder > 0)
+    .sort((a, b) => a.heroOrder - b.heroOrder)
+    .slice(0, 3);
+
   return Response.json({
-    featured: images.filter(i => i.hero).slice(0, 3),
+    featured: heroImages,
     all: images
   });
+}
+
+function getHeroOrder(filename) {
+  if (/hero1/i.test(filename)) return 1;
+  if (/hero2/i.test(filename)) return 2;
+  if (/hero3/i.test(filename)) return 3;
+  return 0;
 }

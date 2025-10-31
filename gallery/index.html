@@ -91,8 +91,8 @@
       const image = galleryImages[currentImageIndex];
       
       modalImage.src = image.url;
-      modalImage.alt = formatTitle(image.key);
-      modalTitle.textContent = formatTitle(image.key);
+      modalImage.alt = "Artwork by Joey Haley";
+      modalTitle.textContent = "Artwork by Joey Haley";
       modalFullRes.href = getFullResUrl(image.key);
       
       modal.classList.add('active');
@@ -162,9 +162,8 @@
           tile.className = 'tile';
           tile.innerHTML = `
             <figure>
-              <img src="${item.url}" alt="${formatTitle(item.key)}" loading="lazy" decoding="async">
+              <img src="${item.url}" alt="Artwork by Joey Haley" loading="lazy" decoding="async">
             </figure>
-            <div class="cap">${formatTitle(item.key)}</div>
           `;
           
           // Add click handler for modal

@@ -25,7 +25,7 @@
 
     <section class="intro" aria-labelledby="intro-title">
       <h1 id="intro-title">A curated archive</h1>
-      <p>A minimalist, permanent home for the work of Canadian artist Joey Haley (paintings and comics). Selected pieces appear below; explore the full gallery for the complete catalog.</p>
+      <p>Accomplished international artist Joey Haley, based in New Brunswick, Canada, creates striking paintings and comics that explore minimalism and bold geometric forms. This collection showcases selected works from his extensive portfolio.</p>
       <div class="row">
         <a class="cta" href="#preview">Preview</a>
         <a class="cta" href="/gallery/">View full gallery</a>
@@ -34,25 +34,9 @@
 
     <section id="preview" class="hero" aria-labelledby="featured-title">
       <h2 id="featured-title" class="sr-only">Featured works</h2>
-      <!-- Tiles are populated by inline data or an API call -->
-      <a class="tile" href="#" data-href="/gallery/untitled-vermilion-field/">
-        <figure>
-          <img src="https://cdn.example.r2/images/paintings/untitled-vermilion-field_1600.jpg" alt="Abstract red field with sharp black geometry" loading="eager" decoding="async">
-        </figure>
-        <div class="cap">Untitled (Vermilion Field) · 2016</div>
-      </a>
-      <a class="tile" href="#" data-href="/gallery/window-four-panels/">
-        <figure>
-          <img src="https://cdn.example.r2/images/comics/window-four-panels_1600.jpg" alt="Four-panel comic with stark lines and negative space" loading="lazy" decoding="async">
-        </figure>
-        <div class="cap">Window, Four Panels · 2014</div>
-      </a>
-      <a class="tile" href="#" data-href="/gallery/northern-light-3/">
-        <figure>
-          <img src="https://cdn.example.r2/images/paintings/northern-light-3_1600.jpg" alt="Cool gradients with a hard-edged diagonal" loading="lazy" decoding="async">
-        </figure>
-        <div class="cap">Northern Light #3 · 2013</div>
-      </a>
+      <div class="loading" style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: calc(var(--grid) * 2);">
+        Loading featured works...
+      </div>
     </section>
 
     <!-- Image Modal -->
@@ -96,29 +80,9 @@
     const modalPrev = document.getElementById('modalPrev');
     const modalNext = document.getElementById('modalNext');
 
-    // Format image title from filename or caption
-    function formatTitle(caption) {
-      return caption.replace(' · ', ' - ');
-    }
-
-    // Get full resolution URL (extract filename from current URL)
-    function getFullResUrl(currentUrl) {
-      const filename = currentUrl.split('/').pop();
-      return `https://cdn.joeyhaleyart.com/${filename}`;
-    }
-
-    // Extract image data from tiles
-    function initializeFeaturedImages() {
-      const tiles = document.querySelectorAll('.tile');
-      featuredImages = Array.from(tiles).map(tile => {
-        const img = tile.querySelector('img');
-        const cap = tile.querySelector('.cap');
-        return {
-          url: img.src,
-          title: cap ? cap.textContent : img.alt,
-          alt: img.alt
-        };
-      });
+    // Get full resolution URL
+    function getFullResUrl(key) {
+      return `https://cdn.joeyhaleyart.com/${key}`;
     }
 
     // Open modal with image
@@ -127,9 +91,9 @@
       const image = featuredImages[currentImageIndex];
       
       modalImage.src = image.url;
-      modalImage.alt = image.alt;
-      modalTitle.textContent = formatTitle(image.title);
-      modalFullRes.href = getFullResUrl(image.url);
+      modalImage.alt = "Artwork by Joey Haley";
+      modalTitle.textContent = "Artwork by Joey Haley";
+      modalFullRes.href = getFullResUrl(image.key);
       
       modal.classList.add('active');
       modal.setAttribute('aria-hidden', 'false');
@@ -185,23 +149,35 @@
       }
     });
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeFeaturedImages();
-      
-      // Make tiles clickable for modal instead of navigation
-      document.querySelectorAll('.tile').forEach((tile, index) => {
-        tile.style.cursor = 'pointer';
-        tile.addEventListener('click', (e) => {
-          e.preventDefault();
-          openModal(index);
-        });
+    // Load featured images from API
+    fetch('/api/gallery')
+      .then(r => r.json())
+      .then(data => {
+        featuredImages = data.featured;
+        const heroSection = document.getElementById('preview');
+        heroSection.innerHTML = '<h2 id="featured-title" class="sr-only">Featured works</h2>';
         
-        // Remove href attributes to prevent navigation
-        tile.removeAttribute('href');
-        tile.removeAttribute('data-href');
+        featuredImages.forEach((item, index) => {
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+          tile.innerHTML = `
+            <figure>
+              <img src="${item.url}" alt="Artwork by Joey Haley" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async">
+            </figure>
+          `;
+          
+          // Add click handler for modal
+          tile.addEventListener('click', () => openModal(index));
+          tile.style.cursor = 'pointer';
+          
+          heroSection.appendChild(tile);
+        });
+      })
+      .catch(error => {
+        console.error('Failed to load featured images:', error);
+        const heroSection = document.getElementById('preview');
+        heroSection.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: calc(var(--grid) * 2);">Failed to load featured works. Please try again later.</div>';
       });
-    });
   </script>
 </body>
 </html>
