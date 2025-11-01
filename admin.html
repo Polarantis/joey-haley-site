@@ -234,13 +234,48 @@
       }
     }
 
-    .image-preview {
+    .image-preview-container {
       width: 80px;
       height: 80px;
       border-radius: 12px;
-      object-fit: cover;
       background: #222;
       flex-shrink: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .image-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.3s ease;
+    }
+
+    .image-preview-container::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin: -10px 0 0 -10px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      z-index: 1;
+    }
+
+    .image-preview-container:has(.image-preview[style*="opacity: 0.3"])::before {
+      display: block;
+    }
+
+    .image-preview-container:has(.image-preview[style*="opacity: 1"])::before {
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .image-info {
@@ -437,6 +472,8 @@
           galleryOrder = data.all;
         }
 
+        // Preload images for better performance
+        preloadImages();
         renderGallery();
         showStatus(`Gallery loaded: ${galleryOrder.length} images`, 'success');
         
@@ -447,42 +484,83 @@
       }
     }
 
+    // Cache for rendered elements to avoid re-rendering images
+    let renderedItems = new Map();
+
+    // Preload images for better performance
+    function preloadImages() {
+      galleryOrder.forEach(image => {
+        const img = new Image();
+        img.src = image.url;
+      });
+    }
+
     function renderGallery() {
       if (!galleryOrder.length) {
         galleryContainer.innerHTML = '<div class="empty">No images in gallery</div>';
         return;
       }
 
-      galleryContainer.innerHTML = '';
-
+      // Create a document fragment for efficient rendering
+      const fragment = document.createDocumentFragment();
+      
       galleryOrder.forEach((image, index) => {
-        const item = document.createElement('div');
-        item.className = 'image-item';
-        item.draggable = true;
-        item.dataset.index = index;
+        let item = renderedItems.get(image.key);
         
-        const shortName = image.key.length > 30 ? 
-          image.key.substring(0, 27) + '...' : image.key;
+        // Only create new element if not cached
+        if (!item) {
+          item = document.createElement('div');
+          item.className = 'image-item';
+          item.dataset.imageKey = image.key;
+          
+          const img = document.createElement('img');
+          img.className = 'image-preview';
+          img.src = image.url;
+          img.alt = '';
+          img.loading = 'eager'; // Load images immediately for admin
+          
+          // Add loading state
+          img.style.opacity = '0.3';
+          img.addEventListener('load', () => {
+            img.style.opacity = '1';
+          });
+          
+          item.innerHTML = `
+            <div class="position-number" onclick="jumpToPosition(${index})"></div>
+            <div class="drag-handle">⋮⋮</div>
+            <div class="image-preview-container"></div>
+            <div class="image-info">
+              <div class="image-status"></div>
+            </div>
+          `;
+          
+          // Insert the image
+          item.querySelector('.image-preview-container').appendChild(img);
+          
+          // Add touch events for mobile reordering
+          item.addEventListener('touchstart', handleTouchStart, { passive: false });
+          item.addEventListener('touchmove', handleTouchMove, { passive: false });
+          item.addEventListener('touchend', handleTouchEnd, { passive: false });
+          
+          // Cache the element
+          renderedItems.set(image.key, item);
+        }
         
+        // Update dynamic content (position and status)
         const isOnHomepage = index < 3;
-        const homepageLabel = isOnHomepage ? ' • On Homepage' : '';
+        const homepageLabel = isOnHomepage ? 'On Homepage' : 'Gallery only';
         
-        item.innerHTML = `
-          <div class="position-number ${isOnHomepage ? 'homepage' : ''}" onclick="jumpToPosition(${index})">${index + 1}</div>
-          <div class="drag-handle">⋮⋮</div>
-          <img class="image-preview" src="${image.url}" alt="" loading="lazy">
-          <div class="image-info">
-            <div class="image-status">${homepageLabel || 'Gallery only'}</div>
-          </div>
-        `;
-
-        // Touch events for mobile reordering
-        item.addEventListener('touchstart', handleTouchStart, { passive: false });
-        item.addEventListener('touchmove', handleTouchMove, { passive: false });
-        item.addEventListener('touchend', handleTouchEnd, { passive: false });
-
-        galleryContainer.appendChild(item);
+        item.dataset.index = index;
+        item.querySelector('.position-number').textContent = index + 1;
+        item.querySelector('.position-number').className = `position-number ${isOnHomepage ? 'homepage' : ''}`;
+        item.querySelector('.image-status').textContent = homepageLabel;
+        
+        fragment.appendChild(item);
       });
+      
+      // Replace content efficiently
+      galleryContainer.innerHTML = '';
+      galleryContainer.appendChild(fragment);
     }
 
     // Touch-based reordering for mobile (iOS compatible)
@@ -577,6 +655,7 @@
           galleryOrder.splice(draggedIndex, 1);
           galleryOrder.splice(targetIndex, 0, draggedItem);
           
+          // Render without reloading images
           renderGallery();
           showStatus('Order updated', 'success');
         }
