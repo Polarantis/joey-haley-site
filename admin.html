@@ -187,31 +187,7 @@
       font-size: 14px;
     }
 
-    .image-controls {
-      display: flex;
-      gap: 8px;
-      flex-shrink: 0;
-    }
 
-    .btn-small {
-      padding: 8px 12px;
-      font-size: 12px;
-      border: 1px solid var(--edge);
-      background: transparent;
-      color: var(--fg);
-      border-radius: 4px;
-      cursor: pointer;
-      min-height: 36px;
-    }
-
-    .btn-small:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .btn-small.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
 
     /* Status Messages */
     .status {
@@ -366,55 +342,39 @@
       try {
         showStatus('Loading gallery...', 'info');
         
-        console.log('Fetching gallery from /api/gallery...');
         const response = await fetch('/api/gallery');
-        console.log('Gallery API response status:', response.status);
-        
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Gallery API error:', response.status, errorText);
-          throw new Error(`API returned ${response.status}: ${errorText}`);
+          throw new Error(`API returned ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Gallery data received:', data);
-        console.log('All images count:', data.all?.length || 0);
-        
         allImages = data.all || [];
         
         if (!allImages.length) {
-          galleryContainer.innerHTML = '<div class="empty">No images found in R2 bucket</div>';
-          showStatus('No images found in R2 bucket', 'error');
+          galleryContainer.innerHTML = '<div class="empty">No images found</div>';
           return;
         }
 
         // Try to load saved order from server, fallback to current order
         try {
-          console.log('Attempting to load saved gallery config...');
           const configResponse = await fetch('/api/admin/gallery-config');
-          console.log('Config API response status:', configResponse.status);
-          
           if (configResponse.ok) {
             const config = await configResponse.json();
-            console.log('Saved config loaded:', config);
             galleryOrder = config.ordered && config.ordered.length > 0 ? config.ordered : data.all;
           } else {
-            console.log('No saved config, using default order');
             galleryOrder = data.all;
           }
-        } catch (configError) {
-          console.warn('Config load failed, using default order:', configError);
+        } catch {
           galleryOrder = data.all;
         }
 
-        console.log('Final gallery order count:', galleryOrder.length);
         renderGallery();
         showStatus(`Gallery loaded: ${galleryOrder.length} images`, 'success');
         
       } catch (error) {
         console.error('Load error:', error);
-        showStatus(`Failed to load gallery: ${error.message}`, 'error');
-        galleryContainer.innerHTML = `<div class="empty">Failed to load images: ${error.message}</div>`;
+        showStatus('Failed to load gallery', 'error');
+        galleryContainer.innerHTML = '<div class="empty">Failed to load images</div>';
       }
     }
 
@@ -432,8 +392,8 @@
         item.draggable = true;
         item.dataset.index = index;
         
-        const shortName = image.key.length > 30 ? 
-          image.key.substring(0, 27) + '...' : image.key;
+        const shortName = image.key.length > 35 ? 
+          image.key.substring(0, 32) + '...' : image.key;
         
         const featured = index < 9 ? ' • Featured' : '';
         
@@ -443,10 +403,6 @@
           <div class="image-info">
             <div class="image-name">${shortName}</div>
             <div class="image-meta">Position ${index + 1}${featured}</div>
-          </div>
-          <div class="image-controls">
-            <button class="btn-small" onclick="moveToTop(${index})" ${index === 0 ? 'disabled' : ''}>⬆️ Top</button>
-            <button class="btn-small" onclick="moveToBottom(${index})" ${index === galleryOrder.length - 1 ? 'disabled' : ''}>⬇️ Bottom</button>
           </div>
         `;
 
@@ -460,63 +416,53 @@
       });
     }
 
-    // Gallery actions
-    function moveToTop(index) {
-      if (index > 0) {
-        const item = galleryOrder.splice(index, 1)[0];
-        galleryOrder.unshift(item);
-        renderGallery();
-        showStatus('Moved to top', 'success');
-      }
-    }
-
-    function moveToBottom(index) {
-      if (index < galleryOrder.length - 1) {
-        const item = galleryOrder.splice(index, 1)[0];
-        galleryOrder.push(item);
-        renderGallery();
-        showStatus('Moved to bottom', 'success');
-      }
-    }
-
     // Drag and drop
     let draggedElement = null;
+    let draggedIndex = null;
 
     function handleDragStart(e) {
-      draggedElement = e.target;
-      e.target.classList.add('dragging');
+      // Find the draggable parent element
+      draggedElement = e.target.closest('.image-item');
+      if (draggedElement) {
+        draggedIndex = parseInt(draggedElement.dataset.index);
+        draggedElement.classList.add('dragging');
+        
+        // Set drag data
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', draggedElement.outerHTML);
+      }
     }
 
     function handleDragOver(e) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       
-      // Add visual feedback
-      const items = [...galleryContainer.querySelectorAll('.image-item')];
-      items.forEach(item => item.classList.remove('drag-over'));
-      
-      const afterElement = getDragAfterElement(galleryContainer, e.clientY);
-      if (afterElement) {
-        afterElement.classList.add('drag-over');
+      const targetElement = e.target.closest('.image-item');
+      if (targetElement && targetElement !== draggedElement) {
+        // Clear previous indicators
+        document.querySelectorAll('.drag-over').forEach(el => 
+          el.classList.remove('drag-over')
+        );
+        
+        // Add indicator to target
+        targetElement.classList.add('drag-over');
       }
     }
 
     function handleDrop(e) {
       e.preventDefault();
       
-      if (draggedElement) {
-        const draggedIndex = parseInt(draggedElement.dataset.index);
-        const afterElement = getDragAfterElement(galleryContainer, e.clientY);
+      const targetElement = e.target.closest('.image-item');
+      if (targetElement && draggedElement && targetElement !== draggedElement) {
+        const targetIndex = parseInt(targetElement.dataset.index);
         
-        let targetIndex = galleryOrder.length;
-        if (afterElement) {
-          targetIndex = parseInt(afterElement.dataset.index);
-        }
-
-        // Reorder array
-        const item = galleryOrder.splice(draggedIndex, 1)[0];
-        if (targetIndex > draggedIndex) targetIndex--;
-        galleryOrder.splice(targetIndex, 0, item);
+        // Remove dragged item from array
+        const draggedItem = galleryOrder[draggedIndex];
+        galleryOrder.splice(draggedIndex, 1);
+        
+        // Insert at new position
+        const insertIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+        galleryOrder.splice(insertIndex, 0, draggedItem);
         
         renderGallery();
         showStatus('Order updated', 'success');
@@ -524,26 +470,15 @@
     }
 
     function handleDragEnd(e) {
-      e.target.classList.remove('dragging');
+      // Clean up
+      if (draggedElement) {
+        draggedElement.classList.remove('dragging');
+      }
       document.querySelectorAll('.drag-over').forEach(el => 
         el.classList.remove('drag-over')
       );
       draggedElement = null;
-    }
-
-    function getDragAfterElement(container, y) {
-      const draggableElements = [...container.querySelectorAll('.image-item:not(.dragging)')];
-      
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
+      draggedIndex = null;
     }
 
     // Save gallery order
@@ -607,10 +542,6 @@
 
     saveBtn.addEventListener('click', saveGallery);
     logoutBtn.addEventListener('click', logout);
-
-    // Global functions for onclick handlers
-    window.moveToTop = moveToTop;
-    window.moveToBottom = moveToBottom;
 
     // Initialize
     checkAuth();
