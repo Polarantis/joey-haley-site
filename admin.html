@@ -133,7 +133,7 @@
     .image-item {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       padding: 16px 20px;
       border-bottom: 1px solid var(--edge);
       background: #111;
@@ -147,6 +147,50 @@
     .image-item.dragging {
       opacity: 0.5;
       background: #222;
+    }
+
+    .position-number {
+      min-width: 32px;
+      height: 32px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .position-number:hover {
+      background: #1d4ed8;
+      transform: scale(1.1);
+    }
+
+    .position-number:active {
+      transform: scale(0.95);
+    }
+
+    .position-number.homepage {
+      background: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+    }
+
+    .position-number.homepage:hover {
+      background: #d97706;
+    }
+
+    .image-item:has(.position-number.homepage) {
+      background: rgba(245, 158, 11, 0.05);
+      border-left: 3px solid #f59e0b;
+    }
+
+    .image-item:has(.position-number.homepage) .image-meta {
+      color: #fbbf24;
+      font-weight: 500;
     }
 
     .drag-handle {
@@ -261,7 +305,7 @@
       <div class="gallery-list">
         <div class="gallery-header">
           <h2>Drag to Reorder Gallery</h2>
-          <p>First 9 images appear as featured on homepage</p>
+          <p>First 3 images appear on homepage landing page</p>
         </div>
         <div id="galleryImages" class="loading">Loading gallery...</div>
       </div>
@@ -392,17 +436,19 @@
         item.draggable = true;
         item.dataset.index = index;
         
-        const shortName = image.key.length > 35 ? 
-          image.key.substring(0, 32) + '...' : image.key;
+        const shortName = image.key.length > 30 ? 
+          image.key.substring(0, 27) + '...' : image.key;
         
-        const featured = index < 9 ? ' • Featured' : '';
+        const isOnHomepage = index < 3;
+        const homepageLabel = isOnHomepage ? ' • On Homepage' : '';
         
         item.innerHTML = `
+          <div class="position-number ${isOnHomepage ? 'homepage' : ''}" onclick="jumpToPosition(${index})">${index + 1}</div>
           <div class="drag-handle">⋮⋮</div>
           <img class="image-preview" src="${image.url}" alt="" loading="lazy">
           <div class="image-info">
             <div class="image-name">${shortName}</div>
-            <div class="image-meta">Position ${index + 1}${featured}</div>
+            <div class="image-meta">Position ${index + 1}${homepageLabel}</div>
           </div>
         `;
 
@@ -481,6 +527,38 @@
       draggedIndex = null;
     }
 
+    // Jump to position functionality
+    function jumpToPosition(currentIndex) {
+      const maxPosition = galleryOrder.length;
+      const currentPosition = currentIndex + 1;
+      
+      const newPosition = prompt(
+        `Move this image to which position? (1-${maxPosition})\nCurrently at position ${currentPosition}`,
+        currentPosition
+      );
+      
+      if (newPosition === null) return; // User cancelled
+      
+      const targetPos = parseInt(newPosition);
+      if (isNaN(targetPos) || targetPos < 1 || targetPos > maxPosition) {
+        showStatus('Invalid position number', 'error');
+        return;
+      }
+      
+      if (targetPos === currentPosition) {
+        showStatus('Image is already at that position', 'info');
+        return;
+      }
+      
+      // Move the item
+      const targetIndex = targetPos - 1;
+      const item = galleryOrder.splice(currentIndex, 1)[0];
+      galleryOrder.splice(targetIndex, 0, item);
+      
+      renderGallery();
+      showStatus(`Moved to position ${targetPos}`, 'success');
+    }
+
     // Save gallery order
     async function saveGallery() {
       try {
@@ -489,7 +567,7 @@
         showStatus('Saving gallery order...', 'info');
 
         const orderData = {
-          featured: galleryOrder.slice(0, 9),
+          featured: galleryOrder.slice(0, 3),
           all: galleryOrder,
           timestamp: new Date().toISOString()
         };
@@ -542,6 +620,9 @@
 
     saveBtn.addEventListener('click', saveGallery);
     logoutBtn.addEventListener('click', logout);
+
+    // Global functions for onclick handlers
+    window.jumpToPosition = jumpToPosition;
 
     // Initialize
     checkAuth();

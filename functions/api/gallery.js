@@ -27,7 +27,7 @@ export async function onRequestGet(context) {
             orderedImages = config.ordered.filter(img => 
               images.some(available => available.key === img.key)
             );
-            featuredImages = config.featured || orderedImages.slice(0, 9);
+            featuredImages = orderedImages.slice(0, 3); // Only top 3 for homepage
           }
         }
       }
@@ -40,7 +40,7 @@ export async function onRequestGet(context) {
       featuredImages = images
         .filter(i => i.heroOrder > 0)
         .sort((a, b) => a.heroOrder - b.heroOrder)
-        .slice(0, 9);
+        .slice(0, 3); // Only top 3 for homepage
     }
 
     return Response.json({

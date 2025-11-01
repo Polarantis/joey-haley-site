@@ -45,7 +45,7 @@ export async function onRequestPost(context) {
     if (env.GALLERY_CONFIG) {
       await env.GALLERY_CONFIG.put('admin_gallery_order', JSON.stringify({
         ordered: orderData.all,
-        featured: orderData.featured || orderData.all.slice(0, 9),
+        featured: orderData.featured || orderData.all.slice(0, 3),
         timestamp: orderData.timestamp || new Date().toISOString()
       }));
     }
