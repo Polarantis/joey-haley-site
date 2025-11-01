@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Gallery Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --fg: #f3f3f3;
+      --muted: #888;
+      --edge: #333;
+      --accent: #2563eb;
+    }
+
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.4 -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Login Form */
+    .login {
+      background: #111;
+      border: 1px solid var(--edge);
+      border-radius: 12px;
+      padding: 30px;
+      margin-top: 50px;
+      text-align: center;
+    }
+
+    .login h1 {
+      margin: 0 0 20px 0;
+      font-size: 24px;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 16px;
+      border: 1px solid var(--edge);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--edge);
+      color: var(--fg);
+    }
+
+    /* Admin Interface */
+    .admin {
+      display: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--edge);
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .actions .btn {
+      width: auto;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+
+    /* Gallery List */
+    .gallery-list {
+      background: #111;
+      border: 1px solid var(--edge);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .gallery-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--edge);
+      text-align: center;
+    }
+
+    .gallery-header h2 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+
+    .gallery-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .image-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--edge);
+      background: #111;
+      touch-action: none;
+    }
+
+    .image-item:last-child {
+      border-bottom: none;
+    }
+
+    .image-item.dragging {
+      opacity: 0.5;
+      background: #222;
+    }
+
+    .drag-handle {
+      color: var(--muted);
+      cursor: grab;
+      font-size: 18px;
+      padding: 4px;
+      touch-action: none;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .image-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #222;
+    }
+
+    .image-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .image-name {
+      font-weight: 500;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .image-meta {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .image-controls {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-small {
+      padding: 8px 12px;
+      font-size: 12px;
+      border: 1px solid var(--edge);
+      background: transparent;
+      color: var(--fg);
+      border-radius: 4px;
+      cursor: pointer;
+      min-height: 36px;
+    }
+
+    .btn-small:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-small.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Status Messages */
+    .status {
+      padding: 16px;
+      margin: 16px 0;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .status.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+    }
+
+    .status.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+
+    .status.info {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* Drag feedback */
+    .drag-over {
+      border-top: 2px solid var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Login Form -->
+    <div id="loginForm" class="login">
+      <h1>🔐 Gallery Admin</h1>
+      <form id="authForm">
+        <input type="password" id="password" placeholder="Enter password" required>
+        <button type="submit" class="btn">Login</button>
+      </form>
+      <div id="loginStatus"></div>
+    </div>
+
+    <!-- Admin Interface -->
+    <div id="adminInterface" class="admin">
+      <div class="header">
+        <h1>📸 Gallery</h1>
+        <div class="actions">
+          <button id="saveBtn" class="btn">💾 Save</button>
+          <button id="logoutBtn" class="btn btn-ghost">Logout</button>
+        </div>
+      </div>
+
+      <div id="statusMessage"></div>
+
+      <div class="gallery-list">
+        <div class="gallery-header">
+          <h2>Drag to Reorder Gallery</h2>
+          <p>First 9 images appear as featured on homepage</p>
+        </div>
+        <div id="galleryImages" class="loading">Loading gallery...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let galleryOrder = [];
+    let allImages = [];
+    let isAuthenticated = false;
+
+    // DOM elements
+    const loginForm = document.getElementById('loginForm');
+    const adminInterface = document.getElementById('adminInterface');
+    const authForm = document.getElementById('authForm');
+    const loginStatus = document.getElementById('loginStatus');
+    const statusMessage = document.getElementById('statusMessage');
+    const galleryContainer = document.getElementById('galleryImages');
+    const saveBtn = document.getElementById('saveBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Utilities
+    function showStatus(message, type = 'info') {
+      statusMessage.innerHTML = `<div class="status ${type}">${message}</div>`;
+      setTimeout(() => statusMessage.innerHTML = '', 4000);
+    }
+
+    function showLoginStatus(message, type = 'error') {
+      loginStatus.innerHTML = `<div class="status ${type}">${message}</div>`;
+    }
+
+    // Authentication
+    function checkAuth() {
+      if (localStorage.getItem('joey_admin_auth')) {
+        showAdminInterface();
+      }
+    }
+
+    async function authenticate(password) {
+      try {
+        const response = await fetch('/api/admin/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+
+        if (response.ok) {
+          localStorage.setItem('joey_admin_auth', 'true');
+          showAdminInterface();
+          return true;
+        }
+      } catch (error) {
+        // Fallback for local dev
+        if (password === 'joeyhaley2024') {
+          localStorage.setItem('joey_admin_auth', 'true');
+          showAdminInterface();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function logout() {
+      localStorage.removeItem('joey_admin_auth');
+      adminInterface.style.display = 'none';
+      loginForm.style.display = 'block';
+    }
+
+    function showAdminInterface() {
+      loginForm.style.display = 'none';
+      adminInterface.style.display = 'block';
+      loadGallery();
+    }
+
+    // Gallery management
+    async function loadGallery() {
+      try {
+        showStatus('Loading gallery...', 'info');
+        
+        const response = await fetch('/api/gallery');
+        if (!response.ok) throw new Error('Failed to load');
+        
+        const data = await response.json();
+        allImages = data.all || [];
+        
+        if (!allImages.length) {
+          galleryContainer.innerHTML = '<div class="empty">No images found</div>';
+          return;
+        }
+
+        // Try to load saved order from server, fallback to current order
+        try {
+          const configResponse = await fetch('/api/admin/gallery-config');
+          if (configResponse.ok) {
+            const config = await configResponse.json();
+            galleryOrder = config.ordered || data.all;
+          } else {
+            galleryOrder = data.all;
+          }
+        } catch {
+          galleryOrder = data.all;
+        }
+
+        renderGallery();
+        showStatus('Gallery loaded', 'success');
+        
+      } catch (error) {
+        console.error('Load error:', error);
+        showStatus('Failed to load gallery', 'error');
+        galleryContainer.innerHTML = '<div class="empty">Failed to load images</div>';
+      }
+    }
+
+    function renderGallery() {
+      if (!galleryOrder.length) {
+        galleryContainer.innerHTML = '<div class="empty">No images in gallery</div>';
+        return;
+      }
+
+      galleryContainer.innerHTML = '';
+
+      galleryOrder.forEach((image, index) => {
+        const item = document.createElement('div');
+        item.className = 'image-item';
+        item.draggable = true;
+        item.dataset.index = index;
+        
+        const shortName = image.key.length > 30 ? 
+          image.key.substring(0, 27) + '...' : image.key;
+        
+        const featured = index < 9 ? ' • Featured' : '';
+        
+        item.innerHTML = `
+          <div class="drag-handle">⋮⋮</div>
+          <img class="image-preview" src="${image.url}" alt="" loading="lazy">
+          <div class="image-info">
+            <div class="image-name">${shortName}</div>
+            <div class="image-meta">Position ${index + 1}${featured}</div>
+          </div>
+          <div class="image-controls">
+            <button class="btn-small" onclick="moveToTop(${index})" ${index === 0 ? 'disabled' : ''}>⬆️ Top</button>
+            <button class="btn-small" onclick="moveToBottom(${index})" ${index === galleryOrder.length - 1 ? 'disabled' : ''}>⬇️ Bottom</button>
+          </div>
+        `;
+
+        // Drag events
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragend', handleDragEnd);
+
+        galleryContainer.appendChild(item);
+      });
+    }
+
+    // Gallery actions
+    function moveToTop(index) {
+      if (index > 0) {
+        const item = galleryOrder.splice(index, 1)[0];
+        galleryOrder.unshift(item);
+        renderGallery();
+        showStatus('Moved to top', 'success');
+      }
+    }
+
+    function moveToBottom(index) {
+      if (index < galleryOrder.length - 1) {
+        const item = galleryOrder.splice(index, 1)[0];
+        galleryOrder.push(item);
+        renderGallery();
+        showStatus('Moved to bottom', 'success');
+      }
+    }
+
+    // Drag and drop
+    let draggedElement = null;
+
+    function handleDragStart(e) {
+      draggedElement = e.target;
+      e.target.classList.add('dragging');
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      // Add visual feedback
+      const items = [...galleryContainer.querySelectorAll('.image-item')];
+      items.forEach(item => item.classList.remove('drag-over'));
+      
+      const afterElement = getDragAfterElement(galleryContainer, e.clientY);
+      if (afterElement) {
+        afterElement.classList.add('drag-over');
+      }
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      
+      if (draggedElement) {
+        const draggedIndex = parseInt(draggedElement.dataset.index);
+        const afterElement = getDragAfterElement(galleryContainer, e.clientY);
+        
+        let targetIndex = galleryOrder.length;
+        if (afterElement) {
+          targetIndex = parseInt(afterElement.dataset.index);
+        }
+
+        // Reorder array
+        const item = galleryOrder.splice(draggedIndex, 1)[0];
+        if (targetIndex > draggedIndex) targetIndex--;
+        galleryOrder.splice(targetIndex, 0, item);
+        
+        renderGallery();
+        showStatus('Order updated', 'success');
+      }
+    }
+
+    function handleDragEnd(e) {
+      e.target.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => 
+        el.classList.remove('drag-over')
+      );
+      draggedElement = null;
+    }
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.image-item:not(.dragging)')];
+      
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // Save gallery order
+    async function saveGallery() {
+      try {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '💾 Saving...';
+        showStatus('Saving gallery order...', 'info');
+
+        const orderData = {
+          featured: galleryOrder.slice(0, 9),
+          all: galleryOrder,
+          timestamp: new Date().toISOString()
+        };
+
+        const response = await fetch('/api/admin/gallery-config', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('joey_admin_auth')
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        if (response.ok) {
+          showStatus('Gallery saved successfully! 🎉', 'success');
+        } else {
+          throw new Error('Save failed');
+        }
+
+      } catch (error) {
+        console.error('Save error:', error);
+        showStatus('Failed to save gallery', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Save';
+      }
+    }
+
+    // Event listeners
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('password').value;
+      const btn = e.target.querySelector('.btn');
+      
+      btn.disabled = true;
+      btn.textContent = 'Logging in...';
+      
+      try {
+        const success = await authenticate(password);
+        if (success) {
+          showLoginStatus('Login successful!', 'success');
+        } else {
+          showLoginStatus('Invalid password', 'error');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    });
+
+    saveBtn.addEventListener('click', saveGallery);
+    logoutBtn.addEventListener('click', logout);
+
+    // Global functions for onclick handlers
+    window.moveToTop = moveToTop;
+    window.moveToBottom = moveToBottom;
+
+    // Initialize
+    checkAuth();
+  </script>
+</body>
+</html>

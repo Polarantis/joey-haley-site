@@ -2,35 +2,249 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Admin — Joey Haley Gallery</title>
+  <title>Gallery Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/style.css">
   <style>
+    :root {
+      --bg: #0b0b0b;
+      --fg: #f3f3f3;
+      --muted: #888;
+      --edge: #333;
+      --accent: #2563eb;
+    }
+
+    * { box-sizing: border-box; }
+    
     body {
-      background: var(--bg) !important;
-      color: var(--fg) !important;
-    }
-
-    .admin-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: calc(var(--grid) / 2);
-      min-height: calc(100vh - 200px);
-    }
-
-    @media (min-width: 768px) {
-      .admin-container {
-        padding: var(--grid);
-      }
-    }
-
-    .login-form {
-      max-width: 400px;
-      margin: calc(var(--grid) * 4) auto;
-      padding: calc(var(--grid) * 2);
-      border: 1px solid var(--edge);
-      border-radius: 18px;
+      margin: 0;
       background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.4 -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Login Form */
+    .login {
+      background: #111;
+      border: 1px solid var(--edge);
+      border-radius: 12px;
+      padding: 30px;
+      margin-top: 50px;
+      text-align: center;
+    }
+
+    .login h1 {
+      margin: 0 0 20px 0;
+      font-size: 24px;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 16px;
+      border: 1px solid var(--edge);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--edge);
+      color: var(--fg);
+    }
+
+    /* Admin Interface */
+    .admin {
+      display: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--edge);
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .actions .btn {
+      width: auto;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+
+    /* Gallery List */
+    .gallery-list {
+      background: #111;
+      border: 1px solid var(--edge);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .gallery-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--edge);
+      text-align: center;
+    }
+
+    .gallery-header h2 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+
+    .gallery-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .image-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--edge);
+      background: #111;
+    }
+
+    .image-item:last-child {
+      border-bottom: none;
+    }
+
+    .image-item.dragging {
+      opacity: 0.5;
+    }
+
+    .drag-handle {
+      color: var(--muted);
+      cursor: grab;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .image-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #222;
+    }
+
+    .image-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .image-name {
+      font-weight: 500;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .image-meta {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .image-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+      border: 1px solid var(--edge);
+      background: transparent;
+      color: var(--fg);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-small:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-small.danger {
+      color: #ff6b6b;
+      border-color: #ff6b6b;
+    }
+
+    /* Status Messages */
+    .status {
+      padding: 16px;
+      margin: 16px 0;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .status.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+    }
+
+    .status.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+
+    .status.info {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-style: italic;
     }
 
     .login-form h1 {
@@ -316,118 +530,44 @@
   </style>
 </head>
 <body>
-  <!-- No header - keep admin hidden -->
-
-  <div class="admin-container">
+  <div class="container">
     <!-- Login Form -->
-    <div id="loginForm" class="login-form">
-      <h1>Admin Access</h1>
+    <div id="loginForm" class="login">
+      <h1>🔐 Gallery Admin</h1>
       <form id="authForm">
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" required>
-        </div>
+        <input type="password" id="password" placeholder="Enter password" required>
         <button type="submit" class="btn">Login</button>
       </form>
       <div id="loginStatus"></div>
     </div>
 
     <!-- Admin Interface -->
-    <div id="adminInterface" style="display: none;">
-      <div class="admin-header">
-        <h1>Gallery Admin</h1>
-        <div class="admin-actions">
-          <button id="saveOrder" class="btn">Save Order</button>
-          <button id="resetOrder" class="btn-secondary">Reset</button>
-          <button id="logout" class="btn-secondary">Logout</button>
+    <div id="adminInterface" class="admin">
+      <div class="header">
+        <h1>📸 Gallery</h1>
+        <div class="actions">
+          <button id="saveBtn" class="btn">💾 Save</button>
+          <button id="logoutBtn" class="btn btn-ghost">Logout</button>
         </div>
       </div>
 
       <div id="statusMessage"></div>
 
-      <div class="gallery-manager">
-        <!-- All Images from R2 -->
-        <div class="panel">
-          <div class="panel-header">
-            <h2>All R2 Images</h2>
-            <p style="margin: 8px 0 0 0; color: var(--muted); font-size: 14px;">
-              All images in your R2 bucket. Click to add to gallery or veto.
-            </p>
-          </div>
-          <div class="panel-content">
-            <div id="allImages" class="loading">Loading images...</div>
-          </div>
+      <div class="gallery-list">
+        <div class="gallery-header">
+          <h2>Drag to Reorder Gallery</h2>
+          <p>First 9 images appear as featured on homepage</p>
         </div>
-
-        <!-- Actions Panel -->
-        <div class="panel" style="background: #101010;">
-          <div class="panel-header" style="text-align: center;">
-            <h2 style="font-size: 16px;">Actions</h2>
-          </div>
-          <div class="panel-content" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
-            <button id="addToGallery" class="btn-secondary" disabled style="width: 100%;">
-              Add to Gallery →
-            </button>
-            <button id="vetoImage" class="btn-secondary" disabled style="width: 100%; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #f87171;">
-              ✕ Veto Image
-            </button>
-            <div style="margin: 8px 0; border-top: 1px solid var(--edge); width: 100%;"></div>
-            <button id="exportConfig" class="btn-secondary" style="width: 100%;">
-              📥 Export Config
-            </button>
-            <button id="importConfig" class="btn-secondary" style="width: 100%;">
-              📤 Import Config
-            </button>
-            <input type="file" id="configFile" accept=".json" style="display: none;">
-          </div>
-        </div>
-
-        <!-- Gallery Order -->
-        <div class="panel">
-          <div class="panel-header">
-            <h2>Gallery Order</h2>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-              <p style="margin: 0; color: var(--muted); font-size: 14px;">
-                Drag to reorder. First 9 are featured on homepage.
-              </p>
-              <span id="galleryCount" style="color: var(--accent); font-size: 14px; font-weight: bold;">0 images</span>
-            </div>
-          </div>
-          <div class="panel-content">
-            <div id="orderedImages" class="ordered-list"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Vetoed Images (collapsible) -->
-      <div class="panel" style="margin-bottom: calc(var(--grid) * 2);">
-        <div class="panel-header" style="cursor: pointer;" onclick="toggleVetoed()">
-          <h2 style="display: flex; align-items: center; gap: 8px;">
-            <span id="vetoedToggle">▶</span>
-            Vetoed Images
-            <span id="vetoedCount" style="color: #f87171; font-size: 14px; font-weight: normal;">(0)</span>
-          </h2>
-          <p style="margin: 8px 0 0 0; color: var(--muted); font-size: 14px;">
-            Images excluded from gallery. Click to restore.
-          </p>
-        </div>
-        <div id="vetoedContent" class="panel-content" style="display: none;">
-          <div id="vetoedImages" class="image-grid"></div>
-        </div>
+        <div id="galleryImages" class="loading">Loading gallery...</div>
       </div>
     </div>
   </div>
 
   <script>
-    // Configuration
-    const ADMIN_PASSWORD_KEY = 'joey_haley_admin_password';
-    
-    // State
-    let allImages = [];
-    let orderedImages = [];
-    let vetoedImages = [];
-    let selectedImage = null;
+    // Simple state
+    let galleryOrder = [];
     let isAuthenticated = false;
+    let draggedIndex = null;
 
     // DOM Elements
     const loginForm = document.getElementById('loginForm');
@@ -435,16 +575,12 @@
     const authForm = document.getElementById('authForm');
     const loginStatus = document.getElementById('loginStatus');
     const statusMessage = document.getElementById('statusMessage');
-    const allImagesContainer = document.getElementById('allImages');
-    const orderedImagesContainer = document.getElementById('orderedImages');
-    const vetoedImagesContainer = document.getElementById('vetoedImages');
+    const galleryContainer = document.getElementById('galleryImages');
 
     // Utility functions
     function showStatus(message, type = 'info') {
       statusMessage.innerHTML = `<div class="status ${type}">${message}</div>`;
-      setTimeout(() => {
-        statusMessage.innerHTML = '';
-      }, 5000);
+      setTimeout(() => statusMessage.innerHTML = '', 4000);
     }
 
     function showLoginStatus(message, type = 'error') {

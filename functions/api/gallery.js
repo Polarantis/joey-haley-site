@@ -10,15 +10,40 @@ export async function onRequestGet(context) {
       heroOrder: getHeroOrder(o.key)
     }));
 
-  // Get hero images in order (hero1, hero2, hero3)
-  const heroImages = images
-    .filter(i => i.heroOrder > 0)
-    .sort((a, b) => a.heroOrder - b.heroOrder)
-    .slice(0, 3);
+  // Try to get admin-configured gallery order
+  let orderedImages = images;
+  let featuredImages = [];
+
+  try {
+    if (env.GALLERY_CONFIG) {
+      const adminConfig = await env.GALLERY_CONFIG.get('admin_gallery_order');
+      if (adminConfig) {
+        const config = JSON.parse(adminConfig);
+        
+        // Use admin-configured order if available
+        if (config.ordered && config.ordered.length > 0) {
+          orderedImages = config.ordered.filter(img => 
+            images.some(available => available.key === img.key)
+          );
+          featuredImages = config.featured || orderedImages.slice(0, 9);
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('Could not load admin gallery config, using default:', error);
+  }
+
+  // Fallback to hero images if no admin configuration
+  if (featuredImages.length === 0) {
+    featuredImages = images
+      .filter(i => i.heroOrder > 0)
+      .sort((a, b) => a.heroOrder - b.heroOrder)
+      .slice(0, 9);
+  }
 
   return Response.json({
-    featured: heroImages,
-    all: images
+    featured: featuredImages,
+    all: orderedImages
   });
 }
 
