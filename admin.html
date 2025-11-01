@@ -205,15 +205,33 @@
 
     .drag-handle {
       color: var(--muted);
-      cursor: grab;
       font-size: 20px;
-      padding: 8px;
+      padding: 12px 8px;
       touch-action: none;
       user-select: none;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      cursor: grab;
+    }
+
+    .drag-handle:hover {
+      background: rgba(255, 255, 255, 0.1);
     }
 
     .drag-handle:active {
       cursor: grabbing;
+      background: rgba(37, 99, 235, 0.3);
+    }
+
+    /* iOS specific touch improvements */
+    @supports (-webkit-touch-callout: none) {
+      .drag-handle {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        padding: 16px 12px; /* Larger touch area on iOS */
+      }
     }
 
     .image-preview {
@@ -458,96 +476,121 @@
           </div>
         `;
 
-        // Drag events - only on drag handle
-        const dragHandle = item.querySelector('.drag-handle');
-        dragHandle.addEventListener('mousedown', () => {
-          item.draggable = true;
-        });
-        
-        item.addEventListener('dragstart', handleDragStart);
-        item.addEventListener('dragover', handleDragOver);
-        item.addEventListener('drop', handleDrop);
-        item.addEventListener('dragend', handleDragEnd);
-        
-        // Prevent dragging from other areas
-        item.addEventListener('mousedown', (e) => {
-          if (!e.target.closest('.drag-handle')) {
-            item.draggable = false;
-          }
-        });
+        // Touch events for mobile reordering
+        item.addEventListener('touchstart', handleTouchStart, { passive: false });
+        item.addEventListener('touchmove', handleTouchMove, { passive: false });
+        item.addEventListener('touchend', handleTouchEnd, { passive: false });
 
         galleryContainer.appendChild(item);
       });
     }
 
-    // Drag and drop - improved for mobile
-    let draggedElement = null;
-    let draggedIndex = null;
+    // Touch-based reordering for mobile (iOS compatible)
+    let touchedElement = null;
+    let touchStartY = 0;
+    let isDragging = false;
+    let scrollContainer = null;
 
-    function handleDragStart(e) {
-      // Only start drag from drag handle
-      if (!e.target.closest('.drag-handle')) {
-        e.preventDefault();
-        return;
-      }
+    function handleTouchStart(e) {
+      const dragHandle = e.target.closest('.drag-handle');
+      if (!dragHandle) return;
       
-      draggedElement = e.target.closest('.image-item');
-      if (draggedElement) {
-        draggedIndex = parseInt(draggedElement.dataset.index);
-        draggedElement.classList.add('dragging');
-        
-        // Set drag data
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', draggedIndex.toString());
-      }
+      touchedElement = dragHandle.closest('.image-item');
+      touchStartY = e.touches[0].clientY;
+      isDragging = false;
+      scrollContainer = document.getElementById('galleryImages');
+      
+      // Add visual feedback
+      dragHandle.style.background = 'rgba(37, 99, 235, 0.3)';
+      
+      // Prevent default to stop scrolling when touching drag handle
+      e.preventDefault();
     }
 
-    function handleDragOver(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
+    function handleTouchMove(e) {
+      if (!touchedElement) return;
       
-      const targetElement = e.target.closest('.image-item');
-      if (targetElement && targetElement !== draggedElement) {
+      const currentY = e.touches[0].clientY;
+      const deltaY = Math.abs(currentY - touchStartY);
+      
+      // Start dragging after moving 10px
+      if (deltaY > 10 && !isDragging) {
+        isDragging = true;
+        touchedElement.classList.add('dragging');
+        
+        // Disable container scrolling while dragging
+        scrollContainer.style.overflowY = 'hidden';
+      }
+      
+      if (isDragging) {
+        e.preventDefault(); // Prevent scrolling while dragging
+        
+        // Find element under touch point
+        const elementBelow = document.elementFromPoint(
+          e.touches[0].clientX, 
+          e.touches[0].clientY
+        );
+        
+        const targetItem = elementBelow?.closest('.image-item');
+        
         // Clear previous indicators
         document.querySelectorAll('.drag-over').forEach(el => 
           el.classList.remove('drag-over')
         );
         
         // Add indicator to target
-        targetElement.classList.add('drag-over');
+        if (targetItem && targetItem !== touchedElement) {
+          targetItem.classList.add('drag-over');
+        }
       }
     }
 
-    function handleDrop(e) {
-      e.preventDefault();
+    function handleTouchEnd(e) {
+      if (!touchedElement) return;
       
-      const targetElement = e.target.closest('.image-item');
-      if (targetElement && draggedElement && targetElement !== draggedElement) {
-        const targetIndex = parseInt(targetElement.dataset.index);
-        
-        // Remove dragged item from array
-        const draggedItem = galleryOrder[draggedIndex];
-        galleryOrder.splice(draggedIndex, 1);
-        
-        // Insert at new position
-        const insertIndex = draggedIndex < targetIndex ? targetIndex : targetIndex;
-        galleryOrder.splice(insertIndex, 0, draggedItem);
-        
-        renderGallery();
-        showStatus('Order updated', 'success');
+      // Reset drag handle appearance
+      const dragHandle = touchedElement.querySelector('.drag-handle');
+      if (dragHandle) {
+        dragHandle.style.background = '';
       }
-    }
-
-    function handleDragEnd(e) {
+      
+      // Re-enable scrolling
+      if (scrollContainer) {
+        scrollContainer.style.overflowY = 'auto';
+      }
+      
+      if (isDragging) {
+        // Find drop target
+        const elementBelow = document.elementFromPoint(
+          e.changedTouches[0].clientX, 
+          e.changedTouches[0].clientY
+        );
+        
+        const targetItem = elementBelow?.closest('.image-item');
+        
+        if (targetItem && targetItem !== touchedElement) {
+          const draggedIndex = parseInt(touchedElement.dataset.index);
+          const targetIndex = parseInt(targetItem.dataset.index);
+          
+          // Reorder array
+          const draggedItem = galleryOrder[draggedIndex];
+          galleryOrder.splice(draggedIndex, 1);
+          galleryOrder.splice(targetIndex, 0, draggedItem);
+          
+          renderGallery();
+          showStatus('Order updated', 'success');
+        }
+      }
+      
       // Clean up
-      if (draggedElement) {
-        draggedElement.classList.remove('dragging');
-      }
+      touchedElement.classList.remove('dragging');
       document.querySelectorAll('.drag-over').forEach(el => 
         el.classList.remove('drag-over')
       );
-      draggedElement = null;
-      draggedIndex = null;
+      
+      touchedElement = null;
+      isDragging = false;
+      touchStartY = 0;
     }
 
     // Jump to position functionality
