@@ -137,6 +137,7 @@
       padding: 16px 20px;
       border-bottom: 1px solid var(--edge);
       background: #111;
+      touch-action: none;
     }
 
     .image-item:last-child {
@@ -145,6 +146,7 @@
 
     .image-item.dragging {
       opacity: 0.5;
+      background: #222;
     }
 
     .drag-handle {
@@ -152,6 +154,7 @@
       cursor: grab;
       font-size: 18px;
       padding: 4px;
+      touch-action: none;
     }
 
     .drag-handle:active {
@@ -187,25 +190,27 @@
     .image-controls {
       display: flex;
       gap: 8px;
+      flex-shrink: 0;
     }
 
     .btn-small {
-      padding: 6px 12px;
+      padding: 8px 12px;
       font-size: 12px;
       border: 1px solid var(--edge);
       background: transparent;
       color: var(--fg);
       border-radius: 4px;
       cursor: pointer;
+      min-height: 36px;
     }
 
     .btn-small:hover {
       background: rgba(255, 255, 255, 0.1);
     }
 
-    .btn-small.danger {
-      color: #ff6b6b;
-      border-color: #ff6b6b;
+    .btn-small.primary {
+      background: var(--accent);
+      border-color: var(--accent);
     }
 
     /* Status Messages */
@@ -247,285 +252,9 @@
       font-style: italic;
     }
 
-    .login-form h1 {
-      margin: 0 0 var(--grid) 0;
-      text-align: center;
-    }
-
-    .form-group {
-      margin-bottom: var(--grid);
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--muted);
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--edge);
-      border-radius: 10px;
-      background: var(--bg);
-      color: var(--fg);
-      font-size: 16px;
-    }
-
-    .form-group input:focus {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    .btn {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 16px 24px; /* Larger touch target */
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 16px;
-      width: 100%;
-      transition: all 0.2s ease;
-      min-height: 48px; /* Touch-friendly */
-    }
-
-    .btn:hover {
-      background: #1d4ed8;
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .admin-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: calc(var(--grid) * 2);
-      padding-bottom: var(--grid);
-      border-bottom: 1px solid var(--edge);
-    }
-
-    .admin-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .btn-secondary {
-      background: transparent;
-      border: 1px solid var(--edge);
-      color: var(--fg);
-      padding: 12px 16px; /* Larger touch target */
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      min-height: 44px; /* Touch-friendly */
-    }
-
-    .btn-secondary:hover {
-      border-color: #2a2a2a;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .gallery-manager {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--grid);
-      margin-bottom: calc(var(--grid) * 2);
-    }
-
-    /* Mobile-first design */
-    @media (min-width: 768px) {
-      .gallery-manager {
-        grid-template-columns: 1fr 200px 1fr;
-        gap: calc(var(--grid) * 1.5);
-      }
-    }
-
-    @media (min-width: 1200px) {
-      .gallery-manager {
-        grid-template-columns: 2fr 1fr 2fr;
-        gap: calc(var(--grid) * 1.5);
-      }
-    }
-
-    .panel {
-      border: 1px solid var(--edge);
-      border-radius: 18px;
-      background: var(--bg);
-      overflow: hidden;
-    }
-
-    .panel-header {
-      padding: var(--grid);
-      border-bottom: 1px solid var(--edge);
-      background: #101010;
-    }
-
-    .panel-header h2 {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    .panel-content {
-      padding: calc(var(--grid) / 2);
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    @media (min-width: 768px) {
-      .panel-content {
-        padding: var(--grid);
-        max-height: 600px;
-      }
-    }
-
-    .image-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 8px;
-    }
-
-    @media (min-width: 768px) {
-      .image-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 12px;
-      }
-    }
-
-    .image-item {
-      position: relative;
-      aspect-ratio: 1;
-      border: 2px solid transparent;
-      border-radius: 10px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background: #101010;
-      min-height: 44px; /* Touch-friendly minimum */
-    }
-
-    .image-item:hover {
-      border-color: var(--accent);
-    }
-
-    .image-item.selected {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
-    }
-
-    .image-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .image-item .overlay {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    .ordered-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .ordered-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px;
-      border: 1px solid var(--edge);
-      border-radius: 8px;
-      background: #101010;
-    }
-
-    .ordered-item img {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 6px;
-    }
-
-    .ordered-item .info {
-      flex: 1;
-      font-size: 14px;
-    }
-
-    .ordered-item .actions {
-      display: flex;
-      gap: 4px;
-    }
-
-    .btn-small {
-      padding: 4px 8px;
-      font-size: 12px;
-      border: 1px solid var(--edge);
-      background: transparent;
-      color: var(--fg);
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .btn-small:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .status {
-      padding: 12px;
-      margin: 12px 0;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-
-    .status.success {
-      background: rgba(22, 163, 74, 0.1);
-      border: 1px solid rgba(22, 163, 74, 0.3);
-      color: #4ade80;
-    }
-
-    .status.error {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #f87171;
-    }
-
-    .status.info {
-      background: rgba(59, 130, 246, 0.1);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #60a5fa;
-    }
-
-    .loading {
-      text-align: center;
-      padding: calc(var(--grid) * 2);
-      color: var(--muted);
-    }
-
-    .drag-handle {
-      cursor: grab;
-      padding: 4px;
-      color: var(--muted);
-    }
-
-    .drag-handle:active {
-      cursor: grabbing;
-    }
-
-    .ordered-item.dragging {
-      opacity: 0.5;
+    /* Drag feedback */
+    .drag-over {
+      border-top: 2px solid var(--accent);
     }
   </style>
 </head>
@@ -564,20 +293,22 @@
   </div>
 
   <script>
-    // Simple state
+    // State
     let galleryOrder = [];
+    let allImages = [];
     let isAuthenticated = false;
-    let draggedIndex = null;
 
-    // DOM Elements
+    // DOM elements
     const loginForm = document.getElementById('loginForm');
     const adminInterface = document.getElementById('adminInterface');
     const authForm = document.getElementById('authForm');
     const loginStatus = document.getElementById('loginStatus');
     const statusMessage = document.getElementById('statusMessage');
     const galleryContainer = document.getElementById('galleryImages');
+    const saveBtn = document.getElementById('saveBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-    // Utility functions
+    // Utilities
     function showStatus(message, type = 'info') {
       statusMessage.innerHTML = `<div class="status ${type}">${message}</div>`;
       setTimeout(() => statusMessage.innerHTML = '', 4000);
@@ -589,16 +320,13 @@
 
     // Authentication
     function checkAuth() {
-      const stored = localStorage.getItem(ADMIN_PASSWORD_KEY);
-      if (stored) {
-        isAuthenticated = true;
+      if (localStorage.getItem('joey_admin_auth')) {
         showAdminInterface();
       }
     }
 
     async function authenticate(password) {
       try {
-        // For production, check against Cloudflare environment variable via API
         const response = await fetch('/api/admin/auth', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -606,28 +334,23 @@
         });
 
         if (response.ok) {
-          localStorage.setItem(ADMIN_PASSWORD_KEY, 'authenticated');
-          isAuthenticated = true;
+          localStorage.setItem('joey_admin_auth', 'true');
           showAdminInterface();
           return true;
         }
-        return false;
       } catch (error) {
-        // Fallback for local development
-        console.warn('Using fallback authentication for local development');
+        // Fallback for local dev
         if (password === 'joeyhaley2024') {
-          localStorage.setItem(ADMIN_PASSWORD_KEY, 'authenticated');
-          isAuthenticated = true;
+          localStorage.setItem('joey_admin_auth', 'true');
           showAdminInterface();
           return true;
         }
-        return false;
       }
+      return false;
     }
 
     function logout() {
-      localStorage.removeItem(ADMIN_PASSWORD_KEY);
-      isAuthenticated = false;
+      localStorage.removeItem('joey_admin_auth');
       adminInterface.style.display = 'none';
       loginForm.style.display = 'block';
     }
@@ -635,499 +358,244 @@
     function showAdminInterface() {
       loginForm.style.display = 'none';
       adminInterface.style.display = 'block';
-      loadGalleryData();
+      loadGallery();
     }
 
     // Gallery management
-    async function loadGalleryData() {
+    async function loadGallery() {
       try {
-        showStatus('Loading gallery data...', 'info');
+        showStatus('Loading gallery...', 'info');
         
-        // Load current gallery data
         const response = await fetch('/api/gallery');
-        if (!response.ok) {
-          throw new Error(`API returned ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error('Failed to load');
         
         const data = await response.json();
-        console.log('API Response:', response.status);
-        console.log('Loaded gallery data:', data);
-        console.log('Featured images:', data.featured?.length || 0);
-        console.log('All images:', data.all?.length || 0);
-        
         allImages = data.all || [];
         
-        // If no images at all, show error
         if (!allImages.length) {
-          showStatus('No images found in R2 bucket', 'error');
+          galleryContainer.innerHTML = '<div class="empty">No images found</div>';
           return;
         }
 
-        // Load saved configuration from localStorage
-        const savedConfig = localStorage.getItem('gallery_admin_config');
-        if (savedConfig) {
-          try {
-            const config = JSON.parse(savedConfig);
-            vetoedImages = config.vetoed || [];
-            orderedImages = config.ordered || [];
-            
-            // Validate that ordered images still exist in allImages
-            orderedImages = orderedImages.filter(orderedImg => 
-              allImages.some(img => img.key === orderedImg.key)
-            );
-            
-            // Validate that vetoed images still exist in allImages
-            vetoedImages = vetoedImages.filter(vetoedImg => 
-              allImages.some(img => img.key === vetoedImg.key)
-            );
-          } catch (e) {
-            console.error('Invalid config, resetting:', e);
-            localStorage.removeItem('gallery_admin_config');
-            vetoedImages = [];
-            orderedImages = [];
+        // Try to load saved order from server, fallback to current order
+        try {
+          const configResponse = await fetch('/api/admin/gallery-config');
+          if (configResponse.ok) {
+            const config = await configResponse.json();
+            galleryOrder = config.ordered || data.all;
+          } else {
+            galleryOrder = data.all;
           }
-        } else {
-          // Default: empty arrays, all images available
-          vetoedImages = [];
-          orderedImages = [];
-        }        renderAllImages();
-        renderOrderedImages();
-        renderVetoedImages();
-        updateCounts();
-        showStatus('Gallery data loaded successfully', 'success');
+        } catch {
+          galleryOrder = data.all;
+        }
+
+        renderGallery();
+        showStatus('Gallery loaded', 'success');
         
       } catch (error) {
-        console.error('Failed to load gallery:', error);
-        showStatus('Failed to load gallery data', 'error');
+        console.error('Load error:', error);
+        showStatus('Failed to load gallery', 'error');
+        galleryContainer.innerHTML = '<div class="empty">Failed to load images</div>';
       }
     }
 
-    function renderAllImages() {
-      console.log('Rendering all images, total:', allImages.length); // Debug
-      
-      if (!allImages.length) {
-        allImagesContainer.innerHTML = '<div class="loading">No images found in R2 bucket</div>';
+    function renderGallery() {
+      if (!galleryOrder.length) {
+        galleryContainer.innerHTML = '<div class="empty">No images in gallery</div>';
         return;
       }
 
-      const grid = document.createElement('div');
-      grid.className = 'image-grid';
+      galleryContainer.innerHTML = '';
 
-      // Show images that aren't in gallery or vetoed
-      const availableImages = allImages.filter(img => 
-        !orderedImages.some(ordered => ordered.key === img.key) &&
-        !vetoedImages.some(vetoed => vetoed.key === img.key)
-      );
-
-      console.log('Available images (not in gallery/vetoed):', availableImages.length); // Debug
-
-      if (availableImages.length === 0) {
-        allImagesContainer.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">All images are either in gallery or vetoed</div>';
-        return;
-      }
-
-      availableImages.forEach((image, index) => {
+      galleryOrder.forEach((image, index) => {
         const item = document.createElement('div');
         item.className = 'image-item';
-        
-        const shortKey = image.key.length > 15 ? image.key.substring(0, 12) + '...' : image.key;
-        
-        // Debug log for first few images
-        if (index < 3) {
-          console.log(`Image ${index}:`, image.key, image.url);
-        }
-        
-        item.innerHTML = `
-          <img src="${image.url}" alt="Gallery image" loading="lazy" 
-               onerror="console.error('Failed to load image:', '${image.key}'); this.style.display='none'; this.nextElementSibling.innerHTML='❌ Error';">
-          <div class="overlay">${shortKey}</div>
-        `;
-        
-        item.addEventListener('click', () => selectImage(image));
-        grid.appendChild(item);
-      });
-
-      allImagesContainer.innerHTML = '';
-      allImagesContainer.appendChild(grid);
-    }
-
-    function renderOrderedImages() {
-      orderedImagesContainer.innerHTML = '';
-
-      if (!orderedImages.length) {
-        orderedImagesContainer.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">No images in gallery yet</div>';
-        return;
-      }
-
-      orderedImages.forEach((image, index) => {
-        const item = document.createElement('div');
-        item.className = 'ordered-item';
         item.draggable = true;
         item.dataset.index = index;
         
-        const featuredBadge = index < 9 ? ' <span style="color: var(--accent);">[Featured]</span>' : '';
-        const shortKey = image.key.length > 25 ? image.key.substring(0, 22) + '...' : image.key;
+        const shortName = image.key.length > 30 ? 
+          image.key.substring(0, 27) + '...' : image.key;
+        
+        const featured = index < 9 ? ' • Featured' : '';
         
         item.innerHTML = `
-          <span class="drag-handle">⋮⋮</span>
-          <img src="${image.url}" alt="Gallery image">
-          <div class="info">
-            <div>${shortKey}${featuredBadge}</div>
-            <div style="color: var(--muted); font-size: 12px;">Position ${index + 1}</div>
+          <div class="drag-handle">⋮⋮</div>
+          <img class="image-preview" src="${image.url}" alt="" loading="lazy">
+          <div class="image-info">
+            <div class="image-name">${shortName}</div>
+            <div class="image-meta">Position ${index + 1}${featured}</div>
           </div>
-          <div class="actions">
-            <button class="btn-small" onclick="removeFromGallery(${index})">Remove</button>
+          <div class="image-controls">
+            <button class="btn-small" onclick="moveToTop(${index})" ${index === 0 ? 'disabled' : ''}>⬆️ Top</button>
+            <button class="btn-small" onclick="moveToBottom(${index})" ${index === galleryOrder.length - 1 ? 'disabled' : ''}>⬇️ Bottom</button>
           </div>
         `;
 
-        // Add drag events
+        // Drag events
         item.addEventListener('dragstart', handleDragStart);
         item.addEventListener('dragover', handleDragOver);
         item.addEventListener('drop', handleDrop);
         item.addEventListener('dragend', handleDragEnd);
 
-        orderedImagesContainer.appendChild(item);
+        galleryContainer.appendChild(item);
       });
     }
 
-    function renderVetoedImages() {
-      vetoedImagesContainer.innerHTML = '';
-
-      if (!vetoedImages.length) {
-        vetoedImagesContainer.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">No vetoed images</div>';
-        return;
-      }
-
-      vetoedImages.forEach((image, index) => {
-        const item = document.createElement('div');
-        item.className = 'image-item';
-        item.innerHTML = `
-          <img src="${image.url}" alt="Vetoed image" loading="lazy">
-          <div class="overlay" style="background: rgba(239, 68, 68, 0.8);">Vetoed</div>
-        `;
-        
-        item.addEventListener('click', () => restoreFromVeto(image));
-        vetoedImagesContainer.appendChild(item);
-      });
-    }
-
-    function selectImage(image) {
-      // Deselect previous
-      document.querySelectorAll('.image-item.selected').forEach(item => {
-        item.classList.remove('selected');
-      });
-      
-      // Find and select the clicked item
-      const allImageItems = document.querySelectorAll('#allImages .image-item');
-      allImageItems.forEach(item => {
-        const img = item.querySelector('img');
-        if (img && img.src === image.url) {
-          item.classList.add('selected');
-        }
-      });
-      
-      selectedImage = image;
-      console.log('Selected image:', image.key);
-      
-      // Enable action buttons
-      const addBtn = document.getElementById('addToGallery');
-      const vetoBtn = document.getElementById('vetoImage');
-      if (addBtn) addBtn.disabled = false;
-      if (vetoBtn) vetoBtn.disabled = false;
-    }
-
-    function addToGallery() {
-      if (!selectedImage) return;
-      
-      orderedImages.push(selectedImage);
-      selectedImage = null;
-      
-      // Disable buttons and deselect
-      document.getElementById('addToGallery').disabled = true;
-      document.getElementById('vetoImage').disabled = true;
-      document.querySelectorAll('.image-item.selected').forEach(item => {
-        item.classList.remove('selected');
-      });
-      
-      renderAllImages();
-      renderOrderedImages();
-      updateCounts();
-      saveConfig();
-      showStatus('Image added to gallery', 'success');
-    }
-
-    function vetoImage() {
-      if (!selectedImage) return;
-      
-      vetoedImages.push(selectedImage);
-      selectedImage = null;
-      
-      // Disable buttons and deselect
-      document.getElementById('addToGallery').disabled = true;
-      document.getElementById('vetoImage').disabled = true;
-      document.querySelectorAll('.image-item.selected').forEach(item => {
-        item.classList.remove('selected');
-      });
-      
-      renderAllImages();
-      renderVetoedImages();
-      updateCounts();
-      saveConfig();
-      showStatus('Image vetoed', 'success');
-    }
-
-    function removeFromGallery(index) {
-      orderedImages.splice(index, 1);
-      renderAllImages();
-      renderOrderedImages();
-      updateCounts();
-      saveConfig();
-      showStatus('Image removed from gallery', 'success');
-    }
-
-    function restoreFromVeto(image) {
-      const index = vetoedImages.findIndex(img => img.key === image.key);
-      if (index > -1) {
-        vetoedImages.splice(index, 1);
-        renderAllImages();
-        renderVetoedImages();
-        updateCounts();
-        saveConfig();
-        showStatus('Image restored from veto', 'success');
+    // Gallery actions
+    function moveToTop(index) {
+      if (index > 0) {
+        const item = galleryOrder.splice(index, 1)[0];
+        galleryOrder.unshift(item);
+        renderGallery();
+        showStatus('Moved to top', 'success');
       }
     }
 
-    function updateCounts() {
-      document.getElementById('galleryCount').textContent = `${orderedImages.length} images`;
-      document.getElementById('vetoedCount').textContent = `(${vetoedImages.length})`;
-    }
-
-    function toggleVetoed() {
-      const content = document.getElementById('vetoedContent');
-      const toggle = document.getElementById('vetoedToggle');
-      
-      if (content.style.display === 'none') {
-        content.style.display = 'block';
-        toggle.textContent = '▼';
-      } else {
-        content.style.display = 'none';
-        toggle.textContent = '▶';
+    function moveToBottom(index) {
+      if (index < galleryOrder.length - 1) {
+        const item = galleryOrder.splice(index, 1)[0];
+        galleryOrder.push(item);
+        renderGallery();
+        showStatus('Moved to bottom', 'success');
       }
     }
 
-    function saveConfig() {
-      const config = {
-        ordered: orderedImages,
-        vetoed: vetoedImages,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem('gallery_admin_config', JSON.stringify(config));
-    }
-
-    // Drag and drop for reordering
+    // Drag and drop
     let draggedElement = null;
 
     function handleDragStart(e) {
       draggedElement = e.target;
       e.target.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
     }
 
     function handleDragOver(e) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
+      
+      // Add visual feedback
+      const items = [...galleryContainer.querySelectorAll('.image-item')];
+      items.forEach(item => item.classList.remove('drag-over'));
+      
+      const afterElement = getDragAfterElement(galleryContainer, e.clientY);
+      if (afterElement) {
+        afterElement.classList.add('drag-over');
+      }
     }
 
     function handleDrop(e) {
       e.preventDefault();
       
-      if (draggedElement && draggedElement !== e.target.closest('.ordered-item')) {
+      if (draggedElement) {
         const draggedIndex = parseInt(draggedElement.dataset.index);
-        const targetIndex = parseInt(e.target.closest('.ordered-item').dataset.index);
+        const afterElement = getDragAfterElement(galleryContainer, e.clientY);
         
+        let targetIndex = galleryOrder.length;
+        if (afterElement) {
+          targetIndex = parseInt(afterElement.dataset.index);
+        }
+
         // Reorder array
-        const draggedItem = orderedImages[draggedIndex];
-        orderedImages.splice(draggedIndex, 1);
-        orderedImages.splice(targetIndex, 0, draggedItem);
+        const item = galleryOrder.splice(draggedIndex, 1)[0];
+        if (targetIndex > draggedIndex) targetIndex--;
+        galleryOrder.splice(targetIndex, 0, item);
         
-        renderOrderedImages();
-        saveConfig(); // Save after reordering
+        renderGallery();
         showStatus('Order updated', 'success');
       }
     }
 
     function handleDragEnd(e) {
       e.target.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(el => 
+        el.classList.remove('drag-over')
+      );
       draggedElement = null;
     }
 
-    // Export/Import functionality
-    function exportConfig() {
-      const config = {
-        metadata: {
-          exported: new Date().toISOString(),
-          version: "1.0",
-          description: "Joey Haley Gallery Configuration"
-        },
-        gallery: {
-          ordered: orderedImages,
-          vetoed: vetoedImages.map(img => img.key), // Only store keys for vetoed
-          featured_count: 9
-        }
-      };
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.image-item:not(.dragging)')];
       
-      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `joey-haley-gallery-config-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      showStatus('Configuration exported successfully', 'success');
-    }
-
-    function importConfig() {
-      document.getElementById('configFile').click();
-    }
-
-    async function handleConfigImport(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      
-      try {
-        const text = await file.text();
-        const config = JSON.parse(text);
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
         
-        if (config.gallery) {
-          // Restore ordered images (if they still exist in R2)
-          if (config.gallery.ordered) {
-            orderedImages = config.gallery.ordered.filter(img => 
-              allImages.some(available => available.key === img.key)
-            );
-          }
-          
-          // Restore vetoed images (by key reference)
-          if (config.gallery.vetoed) {
-            vetoedImages = allImages.filter(img => 
-              config.gallery.vetoed.includes(img.key)
-            );
-          }
-          
-          renderAllImages();
-          renderOrderedImages();
-          renderVetoedImages();
-          updateCounts();
-          saveConfig();
-          
-          showStatus('Configuration imported successfully', 'success');
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
         } else {
-          throw new Error('Invalid configuration format');
+          return closest;
         }
-      } catch (error) {
-        console.error('Import error:', error);
-        showStatus('Failed to import configuration', 'error');
-      }
-      
-      event.target.value = ''; // Reset file input
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
-    // Save current state to production
-    async function saveOrder() {
+    // Save gallery order
+    async function saveGallery() {
       try {
-        showStatus('Saving gallery configuration...', 'info');
-        
+        saveBtn.disabled = true;
+        saveBtn.textContent = '💾 Saving...';
+        showStatus('Saving gallery order...', 'info');
+
         const orderData = {
-          featured: orderedImages.slice(0, 9),
-          all: orderedImages,
-          vetoed: vetoedImages.map(img => img.key),
+          featured: galleryOrder.slice(0, 9),
+          all: galleryOrder,
           timestamp: new Date().toISOString()
         };
-        
-        // This would be your actual API call:
-        // const response = await fetch('/api/admin/gallery-config', {
-        //   method: 'POST',
-        //   headers: { 
-        //     'Content-Type': 'application/json',
-        //     'Authorization': 'Bearer ' + localStorage.getItem(ADMIN_PASSWORD_KEY)
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-        
-        // For development, store locally and show what would be saved
-        localStorage.setItem('gallery_production_config', JSON.stringify(orderData));
-        
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        showStatus('Gallery configuration saved successfully!', 'success');
-        console.log('Production config saved:', orderData);
-        
-      } catch (error) {
-        console.error('Failed to save configuration:', error);
-        showStatus('Failed to save gallery configuration', 'error');
-      }
-    }
 
-    function resetOrder() {
-      if (confirm('Reset to original order? This will undo all changes.')) {
-        loadGalleryData();
-        showStatus('Order reset to original', 'info');
-      }
-    }
+        const response = await fetch('/api/admin/gallery-config', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('joey_admin_auth')
+          },
+          body: JSON.stringify(orderData)
+        });
 
-    // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-      // Event listeners
-      authForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const password = document.getElementById('password').value;
-        const submitBtn = e.target.querySelector('.btn');
-        
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Authenticating...';
-        
-        try {
-          const success = await authenticate(password);
-          if (success) {
-            showLoginStatus('Login successful!', 'success');
-          } else {
-            showLoginStatus('Invalid password', 'error');
-          }
-        } catch (error) {
-          showLoginStatus('Authentication error', 'error');
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Login';
+        if (response.ok) {
+          showStatus('Gallery saved successfully! 🎉', 'success');
+        } else {
+          throw new Error('Save failed');
         }
-      });
 
-      // Admin interface buttons (with null checks)
-      const saveOrderBtn = document.getElementById('saveOrder');
-      const resetOrderBtn = document.getElementById('resetOrder');
-      const logoutBtn = document.getElementById('logout');
-      const addToGalleryBtn = document.getElementById('addToGallery');
-      const vetoImageBtn = document.getElementById('vetoImage');
-      const exportConfigBtn = document.getElementById('exportConfig');
-      const importConfigBtn = document.getElementById('importConfig');
-      const configFileInput = document.getElementById('configFile');
+      } catch (error) {
+        console.error('Save error:', error);
+        showStatus('Failed to save gallery', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Save';
+      }
+    }
 
-      if (saveOrderBtn) saveOrderBtn.addEventListener('click', saveOrder);
-      if (resetOrderBtn) resetOrderBtn.addEventListener('click', resetOrder);
-      if (logoutBtn) logoutBtn.addEventListener('click', logout);
-      if (addToGalleryBtn) addToGalleryBtn.addEventListener('click', addToGallery);
-      if (vetoImageBtn) vetoImageBtn.addEventListener('click', vetoImage);
-      if (exportConfigBtn) exportConfigBtn.addEventListener('click', exportConfig);
-      if (importConfigBtn) importConfigBtn.addEventListener('click', importConfig);
-      if (configFileInput) configFileInput.addEventListener('change', handleConfigImport);
-
-      // Global functions for onclick handlers
-      window.removeFromGallery = removeFromGallery;
-      window.toggleVetoed = toggleVetoed;
-
-      // Initialize
-      checkAuth();
+    // Event listeners
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('password').value;
+      const btn = e.target.querySelector('.btn');
+      
+      btn.disabled = true;
+      btn.textContent = 'Logging in...';
+      
+      try {
+        const success = await authenticate(password);
+        if (success) {
+          showLoginStatus('Login successful!', 'success');
+        } else {
+          showLoginStatus('Invalid password', 'error');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
     });
+
+    saveBtn.addEventListener('click', saveGallery);
+    logoutBtn.addEventListener('click', logout);
+
+    // Global functions for onclick handlers
+    window.moveToTop = moveToTop;
+    window.moveToBottom = moveToBottom;
+
+    // Initialize
+    checkAuth();
   </script>
 </body>
 </html>
