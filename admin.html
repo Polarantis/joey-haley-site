@@ -111,12 +111,16 @@
       border: 1px solid var(--edge);
       border-radius: 12px;
       overflow: hidden;
+      max-height: 70vh;
+      display: flex;
+      flex-direction: column;
     }
 
     .gallery-header {
       padding: 20px;
       border-bottom: 1px solid var(--edge);
       text-align: center;
+      flex-shrink: 0;
     }
 
     .gallery-header h2 {
@@ -130,14 +134,20 @@
       font-size: 14px;
     }
 
+    #galleryImages {
+      overflow-y: auto;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .image-item {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       padding: 16px 20px;
       border-bottom: 1px solid var(--edge);
       background: #111;
-      touch-action: none;
+      touch-action: manipulation;
     }
 
     .image-item:last-child {
@@ -188,17 +198,18 @@
       border-left: 3px solid #f59e0b;
     }
 
-    .image-item:has(.position-number.homepage) .image-meta {
+    .image-item:has(.position-number.homepage) .image-status {
       color: #fbbf24;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .drag-handle {
       color: var(--muted);
       cursor: grab;
-      font-size: 18px;
-      padding: 4px;
+      font-size: 20px;
+      padding: 8px;
       touch-action: none;
+      user-select: none;
     }
 
     .drag-handle:active {
@@ -206,29 +217,25 @@
     }
 
     .image-preview {
-      width: 60px;
-      height: 60px;
-      border-radius: 8px;
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
       object-fit: cover;
       background: #222;
+      flex-shrink: 0;
     }
 
     .image-info {
       flex: 1;
       min-width: 0;
+      display: flex;
+      align-items: center;
     }
 
-    .image-name {
-      font-weight: 500;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .image-meta {
+    .image-status {
       color: var(--muted);
       font-size: 14px;
+      font-weight: 500;
     }
 
 
@@ -447,27 +454,43 @@
           <div class="drag-handle">⋮⋮</div>
           <img class="image-preview" src="${image.url}" alt="" loading="lazy">
           <div class="image-info">
-            <div class="image-name">${shortName}</div>
-            <div class="image-meta">Position ${index + 1}${homepageLabel}</div>
+            <div class="image-status">${homepageLabel || 'Gallery only'}</div>
           </div>
         `;
 
-        // Drag events
+        // Drag events - only on drag handle
+        const dragHandle = item.querySelector('.drag-handle');
+        dragHandle.addEventListener('mousedown', () => {
+          item.draggable = true;
+        });
+        
         item.addEventListener('dragstart', handleDragStart);
         item.addEventListener('dragover', handleDragOver);
         item.addEventListener('drop', handleDrop);
         item.addEventListener('dragend', handleDragEnd);
+        
+        // Prevent dragging from other areas
+        item.addEventListener('mousedown', (e) => {
+          if (!e.target.closest('.drag-handle')) {
+            item.draggable = false;
+          }
+        });
 
         galleryContainer.appendChild(item);
       });
     }
 
-    // Drag and drop
+    // Drag and drop - improved for mobile
     let draggedElement = null;
     let draggedIndex = null;
 
     function handleDragStart(e) {
-      // Find the draggable parent element
+      // Only start drag from drag handle
+      if (!e.target.closest('.drag-handle')) {
+        e.preventDefault();
+        return;
+      }
+      
       draggedElement = e.target.closest('.image-item');
       if (draggedElement) {
         draggedIndex = parseInt(draggedElement.dataset.index);
@@ -475,7 +498,7 @@
         
         // Set drag data
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', draggedElement.outerHTML);
+        e.dataTransfer.setData('text/plain', draggedIndex.toString());
       }
     }
 
@@ -507,7 +530,7 @@
         galleryOrder.splice(draggedIndex, 1);
         
         // Insert at new position
-        const insertIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+        const insertIndex = draggedIndex < targetIndex ? targetIndex : targetIndex;
         galleryOrder.splice(insertIndex, 0, draggedItem);
         
         renderGallery();
