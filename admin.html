@@ -366,37 +366,55 @@
       try {
         showStatus('Loading gallery...', 'info');
         
+        console.log('Fetching gallery from /api/gallery...');
         const response = await fetch('/api/gallery');
-        if (!response.ok) throw new Error('Failed to load');
+        console.log('Gallery API response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Gallery API error:', response.status, errorText);
+          throw new Error(`API returned ${response.status}: ${errorText}`);
+        }
         
         const data = await response.json();
+        console.log('Gallery data received:', data);
+        console.log('All images count:', data.all?.length || 0);
+        
         allImages = data.all || [];
         
         if (!allImages.length) {
-          galleryContainer.innerHTML = '<div class="empty">No images found</div>';
+          galleryContainer.innerHTML = '<div class="empty">No images found in R2 bucket</div>';
+          showStatus('No images found in R2 bucket', 'error');
           return;
         }
 
         // Try to load saved order from server, fallback to current order
         try {
+          console.log('Attempting to load saved gallery config...');
           const configResponse = await fetch('/api/admin/gallery-config');
+          console.log('Config API response status:', configResponse.status);
+          
           if (configResponse.ok) {
             const config = await configResponse.json();
-            galleryOrder = config.ordered || data.all;
+            console.log('Saved config loaded:', config);
+            galleryOrder = config.ordered && config.ordered.length > 0 ? config.ordered : data.all;
           } else {
+            console.log('No saved config, using default order');
             galleryOrder = data.all;
           }
-        } catch {
+        } catch (configError) {
+          console.warn('Config load failed, using default order:', configError);
           galleryOrder = data.all;
         }
 
+        console.log('Final gallery order count:', galleryOrder.length);
         renderGallery();
-        showStatus('Gallery loaded', 'success');
+        showStatus(`Gallery loaded: ${galleryOrder.length} images`, 'success');
         
       } catch (error) {
         console.error('Load error:', error);
-        showStatus('Failed to load gallery', 'error');
-        galleryContainer.innerHTML = '<div class="empty">Failed to load images</div>';
+        showStatus(`Failed to load gallery: ${error.message}`, 'error');
+        galleryContainer.innerHTML = `<div class="empty">Failed to load images: ${error.message}</div>`;
       }
     }
 
