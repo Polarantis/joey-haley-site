@@ -455,6 +455,68 @@
     .image-actions .btn-warning:hover {
       background: #e0a800;
     }
+
+    /* Insert Position Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .modal-content h3 {
+      margin: 0 0 15px;
+      color: #333;
+    }
+
+    .modal-content p {
+      margin: 0 0 20px;
+      color: #666;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+
+    .modal-content input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .modal-actions button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -518,14 +580,27 @@
         <div class="section-header" onclick="toggleSection('deleted')">
           <h2>
             <span id="deletedToggle">▶</span>
-            Deleted Images
+            Image Graveyard
             <span id="deletedCount" class="count">(0)</span>
           </h2>
-          <span class="muted">Hidden from site</span>
+          <span class="muted">Deleted images - can be restored to gallery</span>
         </div>
         <div id="deletedContent" class="section-content" style="display: none;">
           <div id="deletedImages" class="empty">No deleted images</div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insert Position Modal -->
+  <div id="insertModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Insert at Position</h3>
+      <p>Choose position number (1 = first image):</p>
+      <input type="number" id="insertPosition" min="1" placeholder="Position number">
+      <div class="modal-actions">
+        <button onclick="confirmInsert()" class="btn-success">Insert</button>
+        <button onclick="closeInsertModal()" class="btn">Cancel</button>
       </div>
     </div>
   </div>
@@ -653,6 +728,7 @@
           <div class="image-actions">
             <button onclick="addToGallery('${image.key}', 'top')" class="btn-success">Add Top</button>
             <button onclick="addToGallery('${image.key}', 'bottom')" class="btn-info">Add Bottom</button>
+            <button onclick="showInsertModal('${image.key}')" class="btn-warning">Insert At #</button>
             <button onclick="deleteImage('${image.key}')" class="btn-danger">Delete</button>
           </div>
         </div>
@@ -673,8 +749,10 @@
             <img class="image-preview" src="${image.url}" alt="" loading="lazy">
           </div>
           <div class="image-actions">
-            <button onclick="restoreImage('${image.key}')" class="btn-warning">Restore</button>
-            <button onclick="permanentDelete('${image.key}')" class="btn-danger">Delete Forever</button>
+            <button onclick="addToGallery('${image.key}', 'top')" class="btn-success">Add Top</button>
+            <button onclick="addToGallery('${image.key}', 'bottom')" class="btn-info">Add Bottom</button>
+            <button onclick="showInsertModal('${image.key}')" class="btn-warning">Insert At #</button>
+            <button onclick="permanentDelete('${image.key}')" class="btn-danger">Remove from R2</button>
           </div>
         </div>
       `).join('');
@@ -720,25 +798,42 @@
     }
 
     function addToGallery(imageKey, position) {
-      const image = queueData.find(img => img.key === imageKey);
+      // Find image in queue or deleted
+      let image = queueData.find(img => img.key === imageKey);
+      let fromQueue = true;
+      
+      if (!image) {
+        image = deletedData.find(img => img.key === imageKey);
+        fromQueue = false;
+      }
+      
       if (!image) return;
 
-      // Remove from queue
-      queueData = queueData.filter(img => img.key !== imageKey);
+      // Remove from current location
+      if (fromQueue) {
+        queueData = queueData.filter(img => img.key !== imageKey);
+      } else {
+        deletedData = deletedData.filter(img => img.key !== imageKey);
+      }
 
       // Add to gallery
       if (position === 'top') {
         galleryOrder.unshift(image);
-      } else {
+      } else if (position === 'bottom') {
         galleryOrder.push(image);
+      } else if (typeof position === 'number') {
+        // Insert at specific position (0-indexed)
+        galleryOrder.splice(position, 0, image);
       }
 
       // Re-render
       renderGallery();
       renderQueue();
+      renderDeleted();
       updateCounts();
       
-      showStatus(`Added ${imageKey} to ${position} of gallery`);
+      const positionText = position === 'top' ? 'top' : position === 'bottom' ? 'bottom' : `position ${position + 1}`;
+      showStatus(`Added ${imageKey} to ${positionText} of gallery`);
     }
 
     function deleteImage(imageKey) {
@@ -772,35 +867,58 @@
       showStatus(`Moved ${imageKey} to deleted`);
     }
 
-    function restoreImage(imageKey) {
-      const image = deletedData.find(img => img.key === imageKey);
-      if (!image) return;
 
-      // Remove from deleted
-      deletedData = deletedData.filter(img => img.key !== imageKey);
-
-      // Add back to queue
-      queueData.push(image);
-
-      // Re-render
-      renderQueue();
-      renderDeleted();
-      updateCounts();
-      
-      showStatus(`Restored ${imageKey} to queue`);
-    }
 
     function permanentDelete(imageKey) {
-      if (!confirm(`Permanently delete ${imageKey}? This cannot be undone.`)) return;
+      if (!confirm(`Remove ${imageKey} from R2 storage? This will permanently delete the file and cannot be undone.`)) return;
 
-      // Remove from deleted (for now just remove from UI - could implement R2 deletion)
+      // Remove from deleted list
       deletedData = deletedData.filter(img => img.key !== imageKey);
 
       renderDeleted();
       updateCounts();
       
-      showStatus(`Permanently deleted ${imageKey}`);
+      showStatus(`Removed ${imageKey} from graveyard (Note: File still exists in R2 - manual deletion required)`);
     }
+
+    // Insert position modal functions
+    let currentInsertImage = null;
+
+    function showInsertModal(imageKey) {
+      currentInsertImage = imageKey;
+      const modal = document.getElementById('insertModal');
+      const input = document.getElementById('insertPosition');
+      
+      input.value = '';
+      input.max = galleryOrder.length + 1;
+      modal.style.display = 'flex';
+      input.focus();
+    }
+
+    function closeInsertModal() {
+      document.getElementById('insertModal').style.display = 'none';
+      currentInsertImage = null;
+    }
+
+    function confirmInsert() {
+      const position = parseInt(document.getElementById('insertPosition').value);
+      
+      if (!position || position < 1 || position > galleryOrder.length + 1) {
+        alert(`Please enter a valid position between 1 and ${galleryOrder.length + 1}`);
+        return;
+      }
+
+      // Convert to 0-indexed
+      addToGallery(currentInsertImage, position - 1);
+      closeInsertModal();
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeInsertModal();
+      }
+    });
 
     async function loadGallery() {
       try {
