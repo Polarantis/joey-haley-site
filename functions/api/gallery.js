@@ -1,7 +1,10 @@
 export async function onRequestGet(context) {
-  const { env } = context;
+  const { env, request } = context;
   
   try {
+    const url = new URL(request.url);
+    const isRawRequest = url.searchParams.get('raw') === 'true';
+    
     const list = await env.JOEY_BUCKET.list({ prefix: "", limit: 1000 });
 
     const images = list.objects
@@ -11,6 +14,15 @@ export async function onRequestGet(context) {
         url: `https://${env.R2_PUBLIC_DOMAIN}/${o.key}`,
         heroOrder: getHeroOrder(o.key)
       }));
+
+    // If raw=true, return all images without admin filtering
+    if (isRawRequest) {
+      return Response.json({
+        success: true,
+        all: images,
+        count: images.length
+      });
+    }
 
     // Try to get admin-configured gallery order
     let orderedImages = images;
