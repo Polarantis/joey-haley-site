@@ -633,10 +633,12 @@
       if (section.collapsed) {
         header.classList.add('collapsed');
         content.classList.add('collapsed');
+        content.style.display = 'none';
         toggle.textContent = '▶';
       } else {
         header.classList.remove('collapsed');
         content.classList.remove('collapsed');
+        content.style.display = 'block';
         toggle.textContent = '▼';
       }
     }
@@ -645,6 +647,28 @@
       document.getElementById('galleryCount').textContent = `(${galleryOrder.length})`;
       document.getElementById('queueCount').textContent = `(${queueData.length})`;
       document.getElementById('deletedCount').textContent = `(${deletedData.length})`;
+    }
+
+    function initializeSections() {
+      // Initialize each section based on its default collapsed state
+      Object.keys(sections).forEach(sectionName => {
+        const section = sections[sectionName];
+        const header = document.querySelector(`#${sectionName}Toggle`).parentElement.parentElement;
+        const content = document.getElementById(`${sectionName}Content`);
+        const toggle = document.getElementById(`${sectionName}Toggle`);
+        
+        if (section.collapsed) {
+          header.classList.add('collapsed');
+          content.classList.add('collapsed');
+          content.style.display = 'none';
+          toggle.textContent = '▶';
+        } else {
+          header.classList.remove('collapsed');
+          content.classList.remove('collapsed');
+          content.style.display = 'block';
+          toggle.textContent = '▼';
+        }
+      });
     }
 
     // DOM elements
@@ -707,6 +731,7 @@
     function showAdminInterface() {
       loginForm.style.display = 'none';
       adminInterface.style.display = 'block';
+      initializeSections();
       loadGallery();
     }
 
