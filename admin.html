@@ -777,7 +777,7 @@
             <button onclick="addToGallery('${image.key}', 'top')" class="btn-success">Add Top</button>
             <button onclick="addToGallery('${image.key}', 'bottom')" class="btn-info">Add Bottom</button>
             <button onclick="showInsertModal('${image.key}')" class="btn-warning">Insert At #</button>
-            <button onclick="permanentDelete('${image.key}')" class="btn-danger">Remove from R2</button>
+            <button onclick="removeFromGraveyard('${image.key}')" class="btn-danger">Remove from Graveyard</button>
           </div>
         </div>
       `).join('');
@@ -894,16 +894,16 @@
 
 
 
-    function permanentDelete(imageKey) {
-      if (!confirm(`Remove ${imageKey} from R2 storage? This will permanently delete the file and cannot be undone.`)) return;
+    function removeFromGraveyard(imageKey) {
+      if (!confirm(`Remove ${imageKey} from graveyard? This will allow it to be detected as a "new" image when scanning R2 again.`)) return;
 
-      // Remove from deleted list
+      // Remove from deleted list - this allows it to be "new" again
       deletedData = deletedData.filter(img => img.key !== imageKey);
 
       renderDeleted();
       updateCounts();
       
-      showStatus(`Removed ${imageKey} from graveyard (Note: File still exists in R2 - manual deletion required)`);
+      showStatus(`Removed ${imageKey} from graveyard - it can now be pulled as a "new" image`);
     }
 
     // Insert position modal functions
