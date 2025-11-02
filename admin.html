@@ -1038,7 +1038,7 @@
           });
           
           item.innerHTML = `
-            <div class="position-number" onclick="jumpToPosition(${index})"></div>
+            <div class="position-number" onclick="jumpToPositionFromElement(this)"></div>
             <div class="drag-handle">⋮⋮</div>
             <div class="image-preview-container"></div>
             <div class="image-actions">
@@ -1183,6 +1183,12 @@
     }
 
     // Jump to position functionality
+    function jumpToPositionFromElement(element) {
+      const item = element.closest('.image-item');
+      const currentIndex = parseInt(item.dataset.index);
+      jumpToPosition(currentIndex);
+    }
+
     function jumpToPosition(currentIndex) {
       const maxPosition = galleryOrder.length;
       const currentPosition = currentIndex + 1;
@@ -1282,6 +1288,7 @@
 
     // Global functions for onclick handlers
     window.jumpToPosition = jumpToPosition;
+    window.jumpToPositionFromElement = jumpToPositionFromElement;
 
     // Initialize
     checkAuth();
