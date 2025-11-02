@@ -105,39 +105,114 @@
       font-size: 14px;
     }
 
-    /* Gallery List */
-    .gallery-list {
+    /* Sections */
+    .section {
       background: #111;
       border: 1px solid var(--edge);
       border-radius: 12px;
+      margin-bottom: 20px;
       overflow: hidden;
-      max-height: 70vh;
-      display: flex;
-      flex-direction: column;
+      transition: all 0.3s ease;
     }
 
-    .gallery-header {
+    .section-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
       padding: 20px;
-      border-bottom: 1px solid var(--edge);
-      text-align: center;
-      flex-shrink: 0;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
-    .gallery-header h2 {
-      margin: 0 0 8px 0;
-      font-size: 18px;
+    .section-header:hover {
+      background: linear-gradient(135deg, #5a6fd8 0%, #6a42a8 100%);
     }
 
-    .gallery-header p {
+    .section-header h2 {
       margin: 0;
-      color: var(--muted);
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .section-header h2 span:first-child {
+      font-size: 0.8em;
+      transition: transform 0.3s ease;
+      display: inline-block;
+    }
+
+    .section-header.collapsed h2 span:first-child {
+      transform: rotate(-90deg);
+    }
+
+    .count {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .muted {
+      color: rgba(255,255,255,0.8);
       font-size: 14px;
     }
 
-    #galleryImages {
+    .section-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-small:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-1px);
+    }
+
+    .section-content {
+      max-height: 70vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+
+    .section-content.collapsed {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
+
+    #galleryImages, #queueImages, #deletedImages {
       overflow-y: auto;
       flex: 1;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-style: italic;
     }
 
     .image-item {
@@ -336,6 +411,65 @@
     .drag-over {
       border-top: 2px solid var(--accent);
     }
+
+    /* Action buttons */
+    .image-actions {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .image-actions button {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      background: var(--edge);
+      color: white;
+      transition: all 0.2s;
+      min-width: 50px;
+      white-space: nowrap;
+    }
+
+    .image-actions button:hover {
+      background: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .image-actions .btn-danger {
+      background: #dc3545;
+    }
+
+    .image-actions .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .image-actions .btn-success {
+      background: #28a745;
+    }
+
+    .image-actions .btn-success:hover {
+      background: #218838;
+    }
+
+    .image-actions .btn-info {
+      background: #17a2b8;
+    }
+
+    .image-actions .btn-info:hover {
+      background: #138496;
+    }
+
+    .image-actions .btn-warning {
+      background: #ffc107;
+      color: #212529;
+    }
+
+    .image-actions .btn-warning:hover {
+      background: #e0a800;
+    }
   </style>
 </head>
 <body>
@@ -362,12 +496,51 @@
 
       <div id="statusMessage"></div>
 
-      <div class="gallery-list">
-        <div class="gallery-header">
-          <h2>Drag to Reorder Gallery</h2>
-          <p>First 3 images appear on homepage landing page</p>
+      <!-- Gallery Order Section -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection('gallery')">
+          <h2>
+            <span id="galleryToggle">▼</span>
+            📸 Gallery Order
+            <span id="galleryCount" class="count">(0)</span>
+          </h2>
+          <span class="muted">First 3 appear on homepage</span>
         </div>
-        <div id="galleryImages" class="loading">Loading gallery...</div>
+        <div id="galleryContent" class="section-content">
+          <div id="galleryImages" class="loading">Loading gallery...</div>
+        </div>
+      </div>
+
+      <!-- New Images Queue Section -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection('queue')">
+          <h2>
+            <span id="queueToggle">▼</span>
+            🆕 New Images Queue
+            <span id="queueCount" class="count">(0)</span>
+          </h2>
+          <div class="section-actions">
+            <button id="pullNewBtn" class="btn-small">🔄 Pull New from R2</button>
+          </div>
+        </div>
+        <div id="queueContent" class="section-content">
+          <div id="queueImages" class="empty">No new images</div>
+        </div>
+      </div>
+
+      <!-- Deleted Images Section -->
+      <div class="section">
+        <div class="section-header" onclick="toggleSection('deleted')">
+          <h2>
+            <span id="deletedToggle">▶</span>
+            🗑️ Deleted Images
+            <span id="deletedCount" class="count">(0)</span>
+          </h2>
+          <span class="muted">Hidden from site</span>
+        </div>
+        <div id="deletedContent" class="section-content" style="display: none;">
+          <div id="deletedImages" class="empty">No deleted images</div>
+        </div>
       </div>
     </div>
   </div>
@@ -376,7 +549,43 @@
     // State
     let galleryOrder = [];
     let allImages = [];
+    let queueData = [];
+    let deletedData = [];
     let isAuthenticated = false;
+
+    // Section management
+    const sections = {
+      gallery: { collapsed: false },
+      queue: { collapsed: false },
+      deleted: { collapsed: true }
+    };
+
+    function toggleSection(sectionName) {
+      const section = sections[sectionName];
+      if (!section) return;
+
+      section.collapsed = !section.collapsed;
+      
+      const header = document.querySelector(`#${sectionName}Toggle`).parentElement.parentElement;
+      const content = document.getElementById(`${sectionName}Content`);
+      const toggle = document.getElementById(`${sectionName}Toggle`);
+      
+      if (section.collapsed) {
+        header.classList.add('collapsed');
+        content.classList.add('collapsed');
+        toggle.textContent = '▶';
+      } else {
+        header.classList.remove('collapsed');
+        content.classList.remove('collapsed');
+        toggle.textContent = '▼';
+      }
+    }
+
+    function updateCounts() {
+      document.getElementById('galleryCount').textContent = `(${galleryOrder.length})`;
+      document.getElementById('queueCount').textContent = `(${queueData.length})`;
+      document.getElementById('deletedCount').textContent = `(${deletedData.length})`;
+    }
 
     // DOM elements
     const loginForm = document.getElementById('loginForm');
@@ -442,6 +651,171 @@
     }
 
     // Gallery management
+    // Queue and deleted management
+    function renderQueue() {
+      const container = document.getElementById('queueImages');
+      
+      if (!queueData.length) {
+        container.innerHTML = '<div class="empty">No new images in queue</div>';
+        return;
+      }
+
+      container.innerHTML = queueData.map(image => `
+        <div class="image-item" data-image-key="${image.key}">
+          <div class="image-preview-container">
+            <img class="image-preview" src="${image.url}" alt="" loading="lazy">
+          </div>
+          <div class="image-info">
+            <div class="image-status">${image.key}</div>
+          </div>
+          <div class="image-actions">
+            <button onclick="addToGallery('${image.key}', 'top')" class="btn-success">⬆️ Add to Top</button>
+            <button onclick="addToGallery('${image.key}', 'bottom')" class="btn-info">⬇️ Add to Bottom</button>
+            <button onclick="deleteImage('${image.key}')" class="btn-danger">🗑️ Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderDeleted() {
+      const container = document.getElementById('deletedImages');
+      
+      if (!deletedData.length) {
+        container.innerHTML = '<div class="empty">No deleted images</div>';
+        return;
+      }
+
+      container.innerHTML = deletedData.map(image => `
+        <div class="image-item" data-image-key="${image.key}">
+          <div class="image-preview-container">
+            <img class="image-preview" src="${image.url}" alt="" loading="lazy">
+          </div>
+          <div class="image-info">
+            <div class="image-status">Deleted - ${image.key}</div>
+          </div>
+          <div class="image-actions">
+            <button onclick="restoreImage('${image.key}')" class="btn-warning">↩️ Restore</button>
+            <button onclick="permanentDelete('${image.key}')" class="btn-danger">🚫 Permanent Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function pullNewImages() {
+      const btn = document.getElementById('pullNewBtn');
+      btn.textContent = '🔄 Scanning...';
+      btn.disabled = true;
+
+      try {
+        // Get all R2 images
+        const response = await fetch('/api/gallery');
+        const data = await response.json();
+        
+        if (data.success) {
+          const currentKeys = new Set([
+            ...galleryOrder.map(img => img.key),
+            ...deletedData.map(img => img.key)
+          ]);
+          
+          // Find new images not in gallery or deleted
+          queueData = data.images.filter(img => !currentKeys.has(img.key));
+          
+          renderQueue();
+          updateCounts();
+          showStatus(`Found ${queueData.length} new images`);
+        }
+      } catch (error) {
+        console.error('Error pulling new images:', error);
+        showStatus('Error scanning for new images', 'error');
+      } finally {
+        btn.textContent = '🔄 Pull New from R2';
+        btn.disabled = false;
+      }
+    }
+
+    function addToGallery(imageKey, position) {
+      const image = queueData.find(img => img.key === imageKey);
+      if (!image) return;
+
+      // Remove from queue
+      queueData = queueData.filter(img => img.key !== imageKey);
+
+      // Add to gallery
+      if (position === 'top') {
+        galleryOrder.unshift(image);
+      } else {
+        galleryOrder.push(image);
+      }
+
+      // Re-render
+      renderGallery();
+      renderQueue();
+      updateCounts();
+      
+      showStatus(`Added ${imageKey} to ${position} of gallery`);
+    }
+
+    function deleteImage(imageKey) {
+      // Find image in gallery or queue
+      let image = galleryOrder.find(img => img.key === imageKey);
+      let fromGallery = true;
+      
+      if (!image) {
+        image = queueData.find(img => img.key === imageKey);
+        fromGallery = false;
+      }
+      
+      if (!image) return;
+
+      // Remove from current location
+      if (fromGallery) {
+        galleryOrder = galleryOrder.filter(img => img.key !== imageKey);
+      } else {
+        queueData = queueData.filter(img => img.key !== imageKey);
+      }
+
+      // Add to deleted
+      deletedData.push(image);
+
+      // Re-render
+      renderGallery();
+      renderQueue();
+      renderDeleted();
+      updateCounts();
+      
+      showStatus(`Moved ${imageKey} to deleted`);
+    }
+
+    function restoreImage(imageKey) {
+      const image = deletedData.find(img => img.key === imageKey);
+      if (!image) return;
+
+      // Remove from deleted
+      deletedData = deletedData.filter(img => img.key !== imageKey);
+
+      // Add back to queue
+      queueData.push(image);
+
+      // Re-render
+      renderQueue();
+      renderDeleted();
+      updateCounts();
+      
+      showStatus(`Restored ${imageKey} to queue`);
+    }
+
+    function permanentDelete(imageKey) {
+      if (!confirm(`Permanently delete ${imageKey}? This cannot be undone.`)) return;
+
+      // Remove from deleted (for now just remove from UI - could implement R2 deletion)
+      deletedData = deletedData.filter(img => img.key !== imageKey);
+
+      renderDeleted();
+      updateCounts();
+      
+      showStatus(`Permanently deleted ${imageKey}`);
+    }
+
     async function loadGallery() {
       try {
         showStatus('Loading gallery...', 'info');
@@ -465,16 +839,25 @@
           if (configResponse.ok) {
             const config = await configResponse.json();
             galleryOrder = config.ordered && config.ordered.length > 0 ? config.ordered : data.all;
+            queueData = config.queue || [];
+            deletedData = config.deleted || [];
           } else {
             galleryOrder = data.all;
+            queueData = [];
+            deletedData = [];
           }
         } catch {
           galleryOrder = data.all;
+          queueData = [];
+          deletedData = [];
         }
 
         // Preload images for better performance
         preloadImages();
         renderGallery();
+        renderQueue();
+        renderDeleted();
+        updateCounts();
         showStatus(`Gallery loaded: ${galleryOrder.length} images`, 'success');
         
       } catch (error) {
@@ -531,6 +914,9 @@
             <div class="image-preview-container"></div>
             <div class="image-info">
               <div class="image-status"></div>
+            </div>
+            <div class="image-actions">
+              <button onclick="deleteImage('${image.key}')" class="btn-danger">🗑️ Delete</button>
             </div>
           `;
           
@@ -714,6 +1100,8 @@
         const orderData = {
           featured: galleryOrder.slice(0, 3),
           all: galleryOrder,
+          queue: queueData,
+          deleted: deletedData,
           timestamp: new Date().toISOString()
         };
 
@@ -742,6 +1130,8 @@
     }
 
     // Event listeners
+    document.getElementById('pullNewBtn').addEventListener('click', pullNewImages);
+    
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const password = document.getElementById('password').value;
